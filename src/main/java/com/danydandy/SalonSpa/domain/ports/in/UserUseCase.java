@@ -9,5 +9,5 @@ public interface UserUseCase {
     Mono<User> findById(Long id);
     Mono<User> update(Long id, User user);
     Mono<Void> delete(Long id);
-    Flux<User> findBySalonId(Long id);
+    Flux<User> findBySalonId();
 }

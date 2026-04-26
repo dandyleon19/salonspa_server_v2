@@ -26,7 +26,7 @@ public class BranchController {
     @GetMapping
     public ResponseEntity<Flux<Branch>> getAll(Authentication auth) {
         AuthUser user = (AuthUser) auth.getPrincipal();
-        return new ResponseEntity<>(branchUseCase.findBySalonId(user.getSalonId()), HttpStatus.OK);
+        return new ResponseEntity<>(branchUseCase.findBySalonId(), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")

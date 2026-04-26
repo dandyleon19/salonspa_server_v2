@@ -1,10 +1,12 @@
 package com.danydandy.SalonSpa.application.service;
 
+import com.danydandy.SalonSpa.domain.model.AuthUser;
 import com.danydandy.SalonSpa.domain.model.User;
 import com.danydandy.SalonSpa.domain.ports.in.UserUseCase;
 import com.danydandy.SalonSpa.domain.ports.out.SalonRepositoryPort;
 import com.danydandy.SalonSpa.domain.ports.out.UserRepositoryPort;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -53,7 +55,12 @@ public class UserService implements UserUseCase {
     }
 
     @Override
-    public Flux<User> findBySalonId(Long id) {
-        return userRepositoryPort.findBySalonId(id);
+    public Flux<User> findBySalonId() {
+        // return userRepositoryPort.findBySalonId(id);
+        return ReactiveSecurityContextHolder.getContext()
+                .map(ctx -> (AuthUser) ctx.getAuthentication().getPrincipal())
+                .flatMapMany(authUser ->
+                        userRepositoryPort.findBySalonId(authUser.getSalonId())
+                );
     }
 }

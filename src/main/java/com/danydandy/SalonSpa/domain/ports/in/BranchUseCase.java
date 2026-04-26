@@ -10,5 +10,5 @@ public interface BranchUseCase {
     Mono<Branch> findById(Long id);
     Mono<Branch> update(Long id, Branch branch);
     Mono<Void> delete(Long id);
-    Flux<Branch> findBySalonId(Long id);
+    Flux<Branch> findBySalonId();
 }

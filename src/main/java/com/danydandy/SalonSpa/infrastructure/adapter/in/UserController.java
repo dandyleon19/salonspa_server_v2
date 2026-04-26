@@ -20,8 +20,8 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<Flux<User>> getAll(Authentication auth) {
-        AuthUser user = (AuthUser) auth.getPrincipal();
-        return new ResponseEntity<>(userUseCase.findBySalonId(user.getSalonId()), HttpStatus.OK);
+        //AuthUser user = (AuthUser) auth.getPrincipal();
+        return new ResponseEntity<>(userUseCase.findBySalonId(), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")

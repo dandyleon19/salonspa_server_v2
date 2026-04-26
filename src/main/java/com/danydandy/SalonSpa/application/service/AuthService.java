@@ -1,11 +1,13 @@
 package com.danydandy.SalonSpa.application.service;
 
 import com.danydandy.SalonSpa.domain.model.AuthResponse;
+import com.danydandy.SalonSpa.domain.model.AuthUser;
 import com.danydandy.SalonSpa.domain.model.User;
 import com.danydandy.SalonSpa.domain.ports.in.AuthUseCase;
 import com.danydandy.SalonSpa.domain.ports.out.UserRepositoryPort;
 import com.danydandy.SalonSpa.infrastructure.security.JwtService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import reactor.core.publisher.Mono;
 
@@ -21,7 +23,12 @@ public class AuthService implements AuthUseCase {
         String hashedPassword = passwordEncoder.encode(user.getPassword());
         user.setPassword(hashedPassword);
         user.setIsActive(true);
-        return userRepositoryPort.save(user);
+        return ReactiveSecurityContextHolder.getContext()
+                .map(ctx -> (AuthUser) ctx.getAuthentication().getPrincipal())
+                .flatMap(authUser -> {
+                    user.setSalonId(authUser.getSalonId());
+                    return userRepositoryPort.save(user);
+                });
     }
 
     @Override

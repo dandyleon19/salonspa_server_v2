@@ -27,8 +27,6 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<Mono<AuthResponse>> login(@RequestBody LoginRequest request) {
-        System.out.println("=========> request");
-        System.out.println(request);
         return new ResponseEntity<>(authUseCase.login(request.getEmail(), request.getPassword()), HttpStatus.OK);
     }
 }

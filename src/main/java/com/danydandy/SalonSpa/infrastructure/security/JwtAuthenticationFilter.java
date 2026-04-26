@@ -40,17 +40,10 @@ public class JwtAuthenticationFilter extends AuthenticationWebFilter {
 
         String token = authHeader.substring(7);
 
-        System.out.println("=======> token " + token);
-
-        if (!jwtService.isValid(token)) {
-            return Mono.empty();
-        }
+        if (!jwtService.isValid(token)) return Mono.empty();
 
         Long userId = jwtService.extractUserId(token);
         Long salonId = jwtService.extractSalonId(token);
-
-        System.out.println("=======> userId " + userId);
-        System.out.println("=======> salonId " + salonId);
 
         return Mono.just(
                 new UsernamePasswordAuthenticationToken(
