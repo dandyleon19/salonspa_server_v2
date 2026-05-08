@@ -3,6 +3,7 @@ package com.danydandy.SalonSpa.domain.model;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -21,4 +22,6 @@ public class Client {
     private Gender gender;
     private Long salonId;
     private List<ClinicalRecord> clinicalRecords;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

@@ -29,8 +29,14 @@ public class UserEntity {
     private Boolean isActive;
     @Column("commission_percentage")
     private Double commissionPercentage;
+    private String role;
 
     // Relations
     @Column("salon_id")
     private Long salonId;
+
+    @Column("created_at")
+    private LocalDateTime createdAt;
+    @Column("updated_at")
+    private LocalDateTime updatedAt;
 }

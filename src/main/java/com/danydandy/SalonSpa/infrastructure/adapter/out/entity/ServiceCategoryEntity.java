@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
 
@@ -14,13 +13,15 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table(name = "branches")
-public class BranchEntity {
+public class ServiceCategoryEntity {
     @Id
     private Long id;
     private String name;
-    private String address;
-    private String city;
+    private String description;
+    @Column("long_description")
+    private String longDescription;
+
+    // Relations
     @Column("salon_id")
     private Long salonId;
 
@@ -28,4 +29,5 @@ public class BranchEntity {
     private LocalDateTime createdAt;
     @Column("updated_at")
     private LocalDateTime updatedAt;
+
 }

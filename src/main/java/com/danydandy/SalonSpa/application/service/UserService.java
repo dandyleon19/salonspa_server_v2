@@ -45,6 +45,7 @@ public class UserService implements UserUseCase {
                     existing.setEmail(user.getEmail());
                     existing.setIsActive(user.getIsActive());
                     existing.setCommissionPercentage(user.getCommissionPercentage());
+                    existing.setRole(user.getRole());
                     return userRepositoryPort.save(existing);
                 });
     }
@@ -56,11 +57,15 @@ public class UserService implements UserUseCase {
 
     @Override
     public Flux<User> findBySalonId() {
-        // return userRepositoryPort.findBySalonId(id);
         return ReactiveSecurityContextHolder.getContext()
                 .map(ctx -> (AuthUser) ctx.getAuthentication().getPrincipal())
                 .flatMapMany(authUser ->
                         userRepositoryPort.findBySalonId(authUser.getSalonId())
+                                .flatMap(user -> salonRepositoryPort.findById(user.getSalonId())
+                                        .map(salon -> {
+                                            user.setSalon(salon);
+                                            return user;
+                                        }))
                 );
     }
 }

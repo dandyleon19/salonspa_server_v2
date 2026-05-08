@@ -39,10 +39,10 @@ public class AuthService implements AuthUseCase {
                     boolean matches = passwordEncoder.matches(password, user.getPassword());
                     if (!matches) return Mono.error(new RuntimeException("Invalid Credentials."));
 
-                    String token = jwtService.generateToken(user.getId(), user.getSalonId());
+                    String token = jwtService.generateToken(user.getId(), user.getSalonId(), user.getRole());
 
                     return Mono.just(
-                            new AuthResponse(token, user.getId(), user.getEmail(), user.getSalonId())
+                            new AuthResponse(token, user.getId(), user.getEmail(), user.getSalonId(), user.getRole())
                     );
                 });
     }

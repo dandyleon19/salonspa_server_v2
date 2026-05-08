@@ -4,6 +4,7 @@ import com.danydandy.SalonSpa.domain.model.AuthUser;
 import com.danydandy.SalonSpa.domain.model.Branch;
 import com.danydandy.SalonSpa.domain.ports.in.BranchUseCase;
 import com.danydandy.SalonSpa.domain.ports.out.BranchRepositoryPort;
+import com.danydandy.SalonSpa.domain.ports.out.SalonRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import reactor.core.publisher.Flux;
@@ -13,7 +14,7 @@ import reactor.core.publisher.Mono;
 public class BranchService implements BranchUseCase {
 
     private final BranchRepositoryPort branchRepositoryPort;
-
+    private final SalonRepositoryPort salonRepositoryPort;
 
     @Override
     public Mono<Branch> create(Branch branch) {
@@ -27,12 +28,22 @@ public class BranchService implements BranchUseCase {
 
     @Override
     public Flux<Branch> findAll() {
-        return branchRepositoryPort.findAll();
+        return branchRepositoryPort.findAll()
+                .flatMap(branch -> salonRepositoryPort.findById(branch.getSalonId())
+                        .map(salon -> {
+                            branch.setSalon(salon);
+                            return branch;
+                        }));
     }
 
     @Override
     public Mono<Branch> findById(Long id) {
-        return branchRepositoryPort.findById(id);
+        return branchRepositoryPort.findById(id)
+                .flatMap(branch -> salonRepositoryPort.findById(branch.getSalonId())
+                        .map(salon -> {
+                            branch.setSalon(salon);
+                            return branch;
+                        }));
     }
 
     @Override
@@ -53,11 +64,15 @@ public class BranchService implements BranchUseCase {
 
     @Override
     public Flux<Branch> findBySalonId() {
-        // return branchRepositoryPort.findBySalonId(id);
         return ReactiveSecurityContextHolder.getContext()
                 .map(ctx -> (AuthUser) ctx.getAuthentication().getPrincipal())
                 .flatMapMany(authUser ->
                         branchRepositoryPort.findBySalonId(authUser.getSalonId())
+                                .flatMap(branch -> salonRepositoryPort.findById(branch.getSalonId())
+                                        .map(salon -> {
+                                            branch.setSalon(salon);
+                                            return branch;
+                                        }))
                 );
     }
 }

@@ -2,7 +2,6 @@ package com.danydandy.SalonSpa.infrastructure.adapter.out.repository;
 
 import com.danydandy.SalonSpa.domain.model.Salon;
 import com.danydandy.SalonSpa.domain.ports.out.SalonRepositoryPort;
-import com.danydandy.SalonSpa.infrastructure.adapter.out.entity.SalonEntity;
 import com.danydandy.SalonSpa.infrastructure.adapter.out.mapper.SalonMapper;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
@@ -22,7 +21,7 @@ public class SalonRepositoryAdapter implements SalonRepositoryPort {
 
     @Override
     public Flux<Salon> findAll() {
-        return salonRepository.findAll()
+        return salonRepository.findAllByOrderByUpdatedAtAsc()
                 .map(salonMapper::toDomain);
     }
 

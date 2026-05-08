@@ -3,9 +3,7 @@ package com.danydandy.SalonSpa.config;
 import com.danydandy.SalonSpa.application.service.*;
 import com.danydandy.SalonSpa.domain.ports.in.*;
 import com.danydandy.SalonSpa.domain.ports.out.*;
-import com.danydandy.SalonSpa.infrastructure.adapter.out.mapper.ClientMapper;
-import com.danydandy.SalonSpa.infrastructure.adapter.out.mapper.ClinicalRecordMapper;
-import com.danydandy.SalonSpa.infrastructure.adapter.out.mapper.SalonMapper;
+import com.danydandy.SalonSpa.infrastructure.adapter.out.mapper.*;
 import com.danydandy.SalonSpa.infrastructure.adapter.out.repository.*;
 import com.danydandy.SalonSpa.infrastructure.security.JwtService;
 import org.springframework.context.annotation.Bean;
@@ -48,23 +46,23 @@ public class BeanConfig {
     }
 
     @Bean
-    public UserRepositoryPort userRepositoryPort(UserRepository repository) {
-        return new UserRepositoryAdapter(repository);
+    public UserRepositoryPort userRepositoryPort(UserRepository repository, UserMapper userMapper) {
+        return new UserRepositoryAdapter(repository, userMapper);
     }
 
     @Bean
-    public BranchUseCase branchUseCase(BranchRepositoryPort branchRepositoryPort) {
-        return new BranchService(branchRepositoryPort);
+    public BranchUseCase branchUseCase(BranchRepositoryPort branchRepositoryPort, SalonRepositoryPort salonRepositoryPort) {
+        return new BranchService(branchRepositoryPort, salonRepositoryPort);
     }
 
     @Bean
-    public BranchRepositoryPort branchRepositoryPort(BranchRepository repository) {
-        return new BranchRepositoryAdapter(repository);
+    public BranchRepositoryPort branchRepositoryPort(BranchRepository repository, BranchMapper branchMapper) {
+        return new BranchRepositoryAdapter(repository, branchMapper);
     }
 
     @Bean
-    public ClientUseCase clientUseCase(ClientRepositoryPort clientRepositoryPort, ClinicalRecordRepositoryPort clinicalRecordRepositoryPort) {
-        return new ClientService(clientRepositoryPort, clinicalRecordRepositoryPort);
+    public ClientUseCase clientUseCase(ClientRepositoryPort clientRepositoryPort, ClinicalRecordRepositoryPort clinicalRecordRepositoryPort, UserRepositoryPort userRepositoryPort, BranchRepositoryPort branchRepositoryPort) {
+        return new ClientService(clientRepositoryPort, clinicalRecordRepositoryPort, userRepositoryPort, branchRepositoryPort);
     }
 
     @Bean

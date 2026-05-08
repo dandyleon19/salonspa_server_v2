@@ -44,12 +44,13 @@ public class JwtAuthenticationFilter extends AuthenticationWebFilter {
 
         Long userId = jwtService.extractUserId(token);
         Long salonId = jwtService.extractSalonId(token);
+        String role = jwtService.extractRole(token);
 
         return Mono.just(
                 new UsernamePasswordAuthenticationToken(
-                        new AuthUser(userId, salonId),
+                        new AuthUser(userId, salonId, role),
                         null,
-                        AuthorityUtils.NO_AUTHORITIES
+                        AuthorityUtils.createAuthorityList("ROLE_" + role)
                 )
         );
     }

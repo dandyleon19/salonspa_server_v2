@@ -18,4 +18,8 @@ public class ClinicalRecord {
     private Long clientId;
     private Long userId;
     private Long branchId;
+    private String userName;
+    private String branchName;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

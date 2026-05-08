@@ -10,4 +10,5 @@ import lombok.*;
 public class AuthUser {
     private Long userId;
     private Long salonId;
+    private String role;
 }

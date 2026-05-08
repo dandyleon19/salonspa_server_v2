@@ -10,5 +10,5 @@ public interface ClientUseCase {
     Mono<Client> findById(Long id);
     Mono<Client> update(Long id, Client client);
     Mono<Void> delete(Long id);
-    Flux<Client> findBySalonId(Long id);
+    Flux<Client> findBySalonId();
 }

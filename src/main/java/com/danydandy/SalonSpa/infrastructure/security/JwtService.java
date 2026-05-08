@@ -1,5 +1,6 @@
 package com.danydandy.SalonSpa.infrastructure.security;
 
+import com.danydandy.SalonSpa.domain.model.Role;
 import com.danydandy.SalonSpa.domain.ports.in.JwtUseCase;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -16,10 +17,11 @@ public class JwtService implements JwtUseCase {
     private final String SECRET = "my-super-secret-key-my-super-secret-key";
     private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
 
-    public String generateToken(Long userId, Long salonId) {
+    public String generateToken(Long userId, Long salonId, Role role) {
         return Jwts.builder()
                 .setSubject(userId.toString())
                 .claim("salonId", salonId)
+                .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 86400000))
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -44,6 +46,15 @@ public class JwtService implements JwtUseCase {
                 .parseClaimsJws(token)
                 .getBody()
                 .get("salonId")).longValue();
+    }
+
+    public String extractRole(String token) {
+        return (String) Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("role");
     }
 
     public boolean isValid(String token) {

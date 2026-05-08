@@ -8,6 +8,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.time.LocalDateTime;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -25,4 +27,9 @@ public class SalonEntity {
     @Column("ruc_number")
     private String rucNumber;
     private String phone;
+
+    @Column("created_at")
+    private LocalDateTime createdAt;
+    @Column("updated_at")
+    private LocalDateTime updatedAt;
 }

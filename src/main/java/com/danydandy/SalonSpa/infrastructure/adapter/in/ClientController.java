@@ -26,7 +26,8 @@ public class ClientController {
     @GetMapping
     public ResponseEntity<Flux<Client>> getAll(Authentication auth) {
         AuthUser user = (AuthUser) auth.getPrincipal();
-        return new ResponseEntity<>(clientUseCase.findBySalonId(user.getSalonId()), HttpStatus.OK);
+        if (user.getRole().equals("SUPER_ADMIN")) return new ResponseEntity<>(clientUseCase.findAll(), HttpStatus.OK);
+        return new ResponseEntity<>(clientUseCase.findBySalonId(), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")

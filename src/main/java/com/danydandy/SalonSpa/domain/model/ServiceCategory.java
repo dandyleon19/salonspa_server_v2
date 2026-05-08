@@ -9,17 +9,12 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class User {
+public class ServiceCategory {
     private Long id;
-    private String firstName;
-    private String lastName;
-    private String email;
-    private String password;
-    private Boolean isActive;
-    private Double commissionPercentage;
-    private Role role;
+    private String name;
+    private String description;
+    private String longDescription;
     private Long salonId;
-    private Salon salon;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

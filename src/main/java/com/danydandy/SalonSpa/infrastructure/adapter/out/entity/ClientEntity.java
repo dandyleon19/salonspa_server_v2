@@ -9,6 +9,7 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -29,6 +30,13 @@ public class ClientEntity {
     @Column("birth_date")
     private LocalDate birthDate;
     private String gender;
+
+    // Relations
     @Column("salon_id")
     private Long salonId;
+
+    @Column("created_at")
+    private LocalDateTime createdAt;
+    @Column("updated_at")
+    private LocalDateTime updatedAt;
 }

@@ -2,6 +2,8 @@ package com.danydandy.SalonSpa.domain.model;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @Builder
@@ -13,4 +15,7 @@ public class Branch {
     private String address;
     private String city;
     private Long salonId;
+    private Salon salon;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

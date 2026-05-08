@@ -1,6 +1,7 @@
 package com.danydandy.SalonSpa.domain.ports.in;
 
 import com.danydandy.SalonSpa.domain.model.AuthResponse;
+import com.danydandy.SalonSpa.domain.model.Role;
 import com.danydandy.SalonSpa.domain.model.User;
 import reactor.core.publisher.Mono;
 

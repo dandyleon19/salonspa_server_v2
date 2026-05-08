@@ -66,24 +66,23 @@ CREATE TABLE IF NOT EXISTS clients
 
 CREATE TABLE IF NOT EXISTS clinical_records
 (
-    id             BIGSERIAL PRIMARY KEY,
+    id           BIGSERIAL PRIMARY KEY,
 
-    client_id      BIGINT NOT NULL,
-    user_id        BIGINT NOT NULL, -- doctor / quien atendió
-    branch_id      BIGINT,          -- opcional (sucursal)
+    client_id    BIGINT NOT NULL,
+    user_id      BIGINT NOT NULL, -- doctor / quien atendió
+    branch_id    BIGINT,          -- opcional (sucursal)
 
-    diagnosis      TEXT,
-    treatment      TEXT,
-    observations   TEXT,
+    diagnosis    TEXT,
+    treatment    TEXT,
+    observations TEXT,
+    session_date TIMESTAMP,
 
     -- weight         NUMERIC(5, 2),
     -- height         NUMERIC(5, 2),
     -- blood_pressure VARCHAR(20),
 
-    session_date   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_record_client
         FOREIGN KEY (client_id)
@@ -97,4 +96,79 @@ CREATE TABLE IF NOT EXISTS clinical_records
     CONSTRAINT fk_record_branch
         FOREIGN KEY (branch_id)
             REFERENCES branches (id)
+);
+
+ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS role VARCHAR(50);
+
+CREATE TABLE IF NOT EXISTS service_categories
+(
+    id               BIGSERIAL PRIMARY KEY,
+
+    name             VARCHAR(100) NOT NULL,
+    description      TEXT,
+    long_description TEXT,
+
+    salon_id         BIGINT       NOT NULL,
+
+    created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_category_salon
+        FOREIGN KEY (salon_id)
+            REFERENCES salons (id)
+            ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS services
+(
+    id               BIGSERIAL PRIMARY KEY,
+
+    category_id      BIGINT       NOT NULL,
+
+    name             VARCHAR(150) NOT NULL,
+    description      TEXT,
+    long_description TEXT,
+
+    duration_minutes INTEGER,
+    price            NUMERIC(10, 2),
+
+    is_active        BOOLEAN   DEFAULT TRUE,
+
+    salon_id         BIGINT       NOT NULL,
+
+    created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_service_category
+        FOREIGN KEY (category_id)
+            REFERENCES service_categories (id)
+            ON DELETE CASCADE,
+
+    CONSTRAINT fk_service_salon
+        FOREIGN KEY (salon_id)
+            REFERENCES salons (id)
+            ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS clinical_record_services
+(
+    id                 BIGSERIAL PRIMARY KEY,
+
+    clinical_record_id BIGINT NOT NULL,
+    service_id         BIGINT NOT NULL,
+
+    notes              TEXT,
+
+    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_crs_record
+        FOREIGN KEY (clinical_record_id)
+            REFERENCES clinical_records (id)
+            ON DELETE CASCADE,
+
+    CONSTRAINT fk_crs_service
+        FOREIGN KEY (service_id)
+            REFERENCES services (id)
+            ON DELETE CASCADE
 );

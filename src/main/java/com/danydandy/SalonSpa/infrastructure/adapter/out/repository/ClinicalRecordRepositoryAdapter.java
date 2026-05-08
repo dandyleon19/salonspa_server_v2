@@ -38,7 +38,7 @@ public class ClinicalRecordRepositoryAdapter implements ClinicalRecordRepository
 
     @Override
     public Flux<ClinicalRecord> findByClientId(Long id) {
-        return clinicalRecordRepository.findByClientId(id)
+        return clinicalRecordRepository.findByClientIdOrderByUpdatedAtAsc(id)
                 .map(clinicalRecordMapper::toDomain);
     }
 }

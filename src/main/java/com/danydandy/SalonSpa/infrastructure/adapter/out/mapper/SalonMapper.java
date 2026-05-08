@@ -6,7 +6,6 @@ import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
 public interface SalonMapper {
-
     Salon toDomain(SalonEntity entity);
     SalonEntity toEntity(Salon domain);
 }

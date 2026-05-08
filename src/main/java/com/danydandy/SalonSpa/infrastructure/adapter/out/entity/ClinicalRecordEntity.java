@@ -23,10 +23,17 @@ public class ClinicalRecordEntity {
     private String observations;
     @Column("session_date")
     private LocalDateTime sessionDate;
+
+    // Relations
     @Column("client_id")
     private Long clientId;
     @Column("user_id")
     private Long userId;
     @Column("branch_id")
     private Long branchId;
+
+    @Column("created_at")
+    private LocalDateTime createdAt;
+    @Column("updated_at")
+    private LocalDateTime updatedAt;
 }

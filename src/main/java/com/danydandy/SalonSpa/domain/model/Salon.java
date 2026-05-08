@@ -2,6 +2,7 @@ package com.danydandy.SalonSpa.domain.model;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -17,4 +18,6 @@ public class Salon {
     private String rucNumber;
     private String phone;
     private List<Branch> branches;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }
