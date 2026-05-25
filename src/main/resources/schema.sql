@@ -130,7 +130,7 @@ CREATE TABLE IF NOT EXISTS services
     description      TEXT,
     long_description TEXT,
 
-    duration_minutes INTEGER,
+
     price            NUMERIC(10, 2),
 
     is_active        BOOLEAN   DEFAULT TRUE,

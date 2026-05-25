@@ -1,30 +1,33 @@
 package com.danydandy.SalonSpa.application.service;
 
-import com.danydandy.SalonSpa.domain.model.AuthUser;
-import com.danydandy.SalonSpa.domain.model.Branch;
-import com.danydandy.SalonSpa.domain.model.Client;
-import com.danydandy.SalonSpa.domain.model.User;
+import com.danydandy.SalonSpa.domain.model.*;
 import com.danydandy.SalonSpa.domain.ports.in.ClientUseCase;
-import com.danydandy.SalonSpa.domain.ports.out.BranchRepositoryPort;
-import com.danydandy.SalonSpa.domain.ports.out.ClientRepositoryPort;
-import com.danydandy.SalonSpa.domain.ports.out.ClinicalRecordRepositoryPort;
-import com.danydandy.SalonSpa.domain.ports.out.UserRepositoryPort;
+import com.danydandy.SalonSpa.domain.ports.out.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @RequiredArgsConstructor
-public class ClientService implements ClientUseCase {
+public class ClientServiceImpl implements ClientUseCase {
 
     private final ClientRepositoryPort clientRepositoryPort;
     private final ClinicalRecordRepositoryPort clinicalRecordRepositoryPort;
     private final UserRepositoryPort userRepositoryPort;
     private final BranchRepositoryPort branchRepositoryPort;
+    private final ClinicalRecordServiceRepositoryPort clinicalRecordServiceRepositoryPort;
+    private final ServiceRepositoryPort serviceRepositoryPort;
 
     @Override
     public Mono<Client> create(Client client) {
-        return clientRepositoryPort.save(client);
+        return ReactiveSecurityContextHolder.getContext()
+                .map(ctx -> (AuthUser) ctx.getAuthentication().getPrincipal())
+                .flatMap(authUser -> {
+                    client.setSalonId(authUser.getSalonId());
+                    return clientRepositoryPort.save(client);
+                });
     }
 
     @Override
@@ -42,17 +45,25 @@ public class ClientService implements ClientUseCase {
     public Mono<Client> findById(Long id) {
         return clientRepositoryPort.findById(id)
                 .flatMap(client -> clinicalRecordRepositoryPort.findByClientId(client.getId())
-                        .flatMap(clinicalRecord ->
-                                Mono.zip(
-                                        userRepositoryPort.findById(clinicalRecord.getUserId()),
-                                        branchRepositoryPort.findById(clinicalRecord.getBranchId())
-                                ).map(tuple -> {
-                                    User user = tuple.getT1();
-                                    Branch branch = tuple.getT2();
-                                    clinicalRecord.setUserName(user.getFirstName() + " " + user.getLastName());
-                                    clinicalRecord.setBranchName(branch.getName());
-                                    return clinicalRecord;
-                                }))
+                        .flatMap(clinicalRecord -> {
+                            Mono<List<String>> servicesMono = clinicalRecordServiceRepositoryPort.findByClinicalRecordId(clinicalRecord.getId())
+                                            .flatMap(clinicalRecordService -> serviceRepositoryPort.findById(clinicalRecordService.getServiceId()))
+                                            .map(Service::getName)
+                                            .collectList();
+                            return Mono.zip(
+                                    userRepositoryPort.findById(clinicalRecord.getUserId()),
+                                    branchRepositoryPort.findById(clinicalRecord.getBranchId()),
+                                    servicesMono
+                            ).map(tuple -> {
+                                User user = tuple.getT1();
+                                Branch branch = tuple.getT2();
+                                List<String> services = tuple.getT3();
+                                clinicalRecord.setUserName(user.getFirstName() + " " + user.getLastName());
+                                clinicalRecord.setBranchName(branch.getName());
+                                clinicalRecord.setAssociatedServices(services);
+                                return clinicalRecord;
+                            });
+                        })
                         .collectList()
                         .map(clinicalRecords -> {
                             client.setClinicalRecords(clinicalRecords);

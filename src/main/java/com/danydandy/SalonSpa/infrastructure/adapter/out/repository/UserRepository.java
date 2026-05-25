@@ -10,6 +10,6 @@ import reactor.core.publisher.Mono;
 
 public interface UserRepository extends R2dbcRepository<UserEntity, Long> {
     Mono<UserEntity> findByEmail(String email);
-    Flux<UserEntity> findAllByOrderByUpdatedAtAsc();
-    Flux<UserEntity> findBySalonIdOrderByUpdatedAtAsc(Long salondId);
+    Flux<UserEntity> findAllByOrderByCreatedAtAsc();
+    Flux<UserEntity> findBySalonIdOrderByCreatedAtAsc(Long salondId);
 }

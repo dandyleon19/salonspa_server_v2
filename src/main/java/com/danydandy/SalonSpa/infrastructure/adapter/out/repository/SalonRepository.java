@@ -5,5 +5,5 @@ import org.springframework.data.r2dbc.repository.R2dbcRepository;
 import reactor.core.publisher.Flux;
 
 public interface SalonRepository extends R2dbcRepository<SalonEntity, Long> {
-    Flux<SalonEntity> findAllByOrderByUpdatedAtAsc();
+    Flux<SalonEntity> findAllByOrderByCreatedAtAsc();
 }

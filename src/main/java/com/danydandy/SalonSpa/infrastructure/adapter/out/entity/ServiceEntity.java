@@ -8,22 +8,28 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-@Table(name = "service_categories")
-public class ServiceCategoryEntity {
+@Table(name = "services")
+public class ServiceEntity {
     @Id
     private Long id;
     private String name;
     private String description;
     @Column("long_description")
     private String longDescription;
+    private BigDecimal price;
+    @Column("is_active")
+    private Boolean isActive;
 
     // Relations
+    @Column("category_id")
+    private Long categoryId;
     @Column("salon_id")
     private Long salonId;
 
@@ -31,5 +37,4 @@ public class ServiceCategoryEntity {
     private LocalDateTime createdAt;
     @Column("updated_at")
     private LocalDateTime updatedAt;
-
 }

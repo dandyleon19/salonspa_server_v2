@@ -11,7 +11,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
-public class BranchService implements BranchUseCase {
+public class BranchServiceImpl implements BranchUseCase {
 
     private final BranchRepositoryPort branchRepositoryPort;
     private final SalonRepositoryPort salonRepositoryPort;

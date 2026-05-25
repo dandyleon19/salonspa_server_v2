@@ -39,7 +39,7 @@ public class BranchRepositoryAdapter implements BranchRepositoryPort {
 
     @Override
     public Flux<Branch> findBySalonId(Long id) {
-        return branchRepository.findBySalonIdOrderByUpdatedAtAsc(id)
+        return branchRepository.findBySalonIdOrderByCreatedAtAsc(id)
                 .map(branchMapper::toDomain);
     }
 }

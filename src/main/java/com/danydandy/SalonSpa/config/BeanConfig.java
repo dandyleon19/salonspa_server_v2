@@ -27,12 +27,12 @@ public class BeanConfig {
 
     @Bean
     public AuthUseCase authUseCase(UserRepositoryPort userRepositoryPort, PasswordEncoder passwordEncoder, JwtService jwtService) {
-        return new AuthService(userRepositoryPort, passwordEncoder, jwtService);
+        return new AuthServiceImpl(userRepositoryPort, passwordEncoder, jwtService);
     }
 
     @Bean
     public SalonUseCase salonUseCase(SalonRepositoryPort salonRepositoryPort, BranchRepositoryPort branchRepositoryPort) {
-        return new SalonService(salonRepositoryPort, branchRepositoryPort);
+        return new SalonServiceImpl(salonRepositoryPort, branchRepositoryPort);
     }
 
     @Bean
@@ -52,7 +52,7 @@ public class BeanConfig {
 
     @Bean
     public BranchUseCase branchUseCase(BranchRepositoryPort branchRepositoryPort, SalonRepositoryPort salonRepositoryPort) {
-        return new BranchService(branchRepositoryPort, salonRepositoryPort);
+        return new BranchServiceImpl(branchRepositoryPort, salonRepositoryPort);
     }
 
     @Bean
@@ -61,8 +61,8 @@ public class BeanConfig {
     }
 
     @Bean
-    public ClientUseCase clientUseCase(ClientRepositoryPort clientRepositoryPort, ClinicalRecordRepositoryPort clinicalRecordRepositoryPort, UserRepositoryPort userRepositoryPort, BranchRepositoryPort branchRepositoryPort) {
-        return new ClientService(clientRepositoryPort, clinicalRecordRepositoryPort, userRepositoryPort, branchRepositoryPort);
+    public ClientUseCase clientUseCase(ClientRepositoryPort clientRepositoryPort, ClinicalRecordRepositoryPort clinicalRecordRepositoryPort, UserRepositoryPort userRepositoryPort, BranchRepositoryPort branchRepositoryPort, ClinicalRecordServiceRepositoryPort clinicalRecordServiceRepositoryPort, ServiceRepositoryPort serviceRepositoryPort) {
+        return new ClientServiceImpl(clientRepositoryPort, clinicalRecordRepositoryPort, userRepositoryPort, branchRepositoryPort, clinicalRecordServiceRepositoryPort, serviceRepositoryPort);
     }
 
     @Bean
@@ -71,13 +71,38 @@ public class BeanConfig {
     }
 
     @Bean
-    public ClinicalRecordUseCase clinicalRecordUseCase(ClinicalRecordRepositoryPort clinicalRecordRepositoryPort) {
-        return new ClinicalRecordService(clinicalRecordRepositoryPort);
+    public ClinicalRecordUseCase clinicalRecordUseCase(ClinicalRecordRepositoryPort clinicalRecordRepositoryPort, ClinicalRecordServiceRepositoryPort clinicalRecordServiceRepositoryPort) {
+        return new ClinicalRecordServiceImpl(clinicalRecordRepositoryPort, clinicalRecordServiceRepositoryPort);
     }
 
     @Bean
     public ClinicalRecordRepositoryPort clinicalRecordRepositoryPort(ClinicalRecordRepository repository, ClinicalRecordMapper clinicalRecordMapper) {
         return new ClinicalRecordRepositoryAdapter(repository, clinicalRecordMapper);
+    }
+
+    @Bean
+    public ServiceCategoryUseCase serviceCategoryUseCase(ServiceCategoryRepositoryPort serviceCategoryRepositoryPort, ServiceRepositoryPort serviceRepositoryPort) {
+        return new ServiceCategoryServiceImpl(serviceCategoryRepositoryPort, serviceRepositoryPort);
+    }
+
+    @Bean
+    public ServiceCategoryRepositoryPort serviceCategoryRepositoryPort(ServiceCategoryRepository repository, ServiceCategoryMapper serviceCategoryMapper) {
+        return new ServiceCategoryRepositoryAdapter(repository, serviceCategoryMapper);
+    }
+
+    @Bean
+    public ServiceUseCase serviceUseCase(ServiceRepositoryPort serviceRepositoryPort) {
+        return new ServiceServiceImpl(serviceRepositoryPort);
+    }
+
+    @Bean
+    public ServiceRepositoryPort serviceRepositoryPort(ServiceRepository repository, ServiceMapper serviceMapper) {
+        return new ServiceRepositoryAdapter(repository, serviceMapper);
+    }
+
+    @Bean
+    public ClinicalRecordServiceRepositoryPort clinicalRecordServiceRepositoryPort(ClinicalRecordServiceRepository repository, ClinicalRecordServiceMapper clinicalRecordServiceMapper) {
+        return new ClinicalRecordServiceRepositoryAdapter(repository, clinicalRecordServiceMapper);
     }
 
     @Bean

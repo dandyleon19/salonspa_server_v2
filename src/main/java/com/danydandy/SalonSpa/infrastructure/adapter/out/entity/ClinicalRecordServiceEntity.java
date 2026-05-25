@@ -11,25 +11,21 @@ import org.springframework.data.relational.core.mapping.Table;
 import java.time.LocalDateTime;
 
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-@Table(name = "service_categories")
-public class ServiceCategoryEntity {
+@Table(name = "clinical_record_services")
+public class ClinicalRecordServiceEntity {
     @Id
     private Long id;
-    private String name;
-    private String description;
-    @Column("long_description")
-    private String longDescription;
+    private String notes;
 
     // Relations
-    @Column("salon_id")
-    private Long salonId;
+    @Column("clinical_record_id")
+    private Long clinicalRecordId;
+    @Column("service_id")
+    private Long serviceId;
 
     @Column("created_at")
     private LocalDateTime createdAt;
-    @Column("updated_at")
-    private LocalDateTime updatedAt;
-
 }

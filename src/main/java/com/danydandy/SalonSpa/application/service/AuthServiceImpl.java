@@ -12,7 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
-public class AuthService implements AuthUseCase {
+public class AuthServiceImpl implements AuthUseCase {
 
     private final UserRepositoryPort userRepositoryPort;
     private final PasswordEncoder passwordEncoder;

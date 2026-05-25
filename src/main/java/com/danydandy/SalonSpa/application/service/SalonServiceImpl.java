@@ -9,7 +9,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
-public class SalonService implements SalonUseCase {
+public class SalonServiceImpl implements SalonUseCase {
 
     private final SalonRepositoryPort salonRepositoryPort;
     private final BranchRepositoryPort branchRepositoryPort;

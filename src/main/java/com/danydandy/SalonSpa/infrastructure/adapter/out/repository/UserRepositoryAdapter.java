@@ -21,7 +21,7 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
 
     @Override
     public Flux<User> findAll() {
-        return userRepository.findAllByOrderByUpdatedAtAsc()
+        return userRepository.findAllByOrderByCreatedAtAsc()
                 .map(userMapper::toDomain);
     }
 
@@ -44,7 +44,7 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
 
     @Override
     public Flux<User> findBySalonId(Long id) {
-        return userRepository.findBySalonIdOrderByUpdatedAtAsc(id)
+        return userRepository.findBySalonIdOrderByCreatedAtAsc(id)
                 .map(userMapper::toDomain);
     }
 }

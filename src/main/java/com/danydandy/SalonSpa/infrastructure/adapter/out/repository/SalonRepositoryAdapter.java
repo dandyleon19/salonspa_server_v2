@@ -21,7 +21,7 @@ public class SalonRepositoryAdapter implements SalonRepositoryPort {
 
     @Override
     public Flux<Salon> findAll() {
-        return salonRepository.findAllByOrderByUpdatedAtAsc()
+        return salonRepository.findAllByOrderByCreatedAtAsc()
                 .map(salonMapper::toDomain);
     }
 

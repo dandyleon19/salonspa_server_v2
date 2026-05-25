@@ -38,7 +38,7 @@ public class ClientRepositoryAdapter implements ClientRepositoryPort {
 
     @Override
     public Flux<Client> findBySalonId(Long id) {
-        return clientRepository.findBySalonIdOrderByUpdatedAtAsc(id)
+        return clientRepository.findBySalonIdOrderByCreatedAtAsc(id)
                 .map(clientMapper::toDomain);
     }
 }
