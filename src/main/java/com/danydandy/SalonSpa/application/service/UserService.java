@@ -1,5 +1,6 @@
 package com.danydandy.SalonSpa.application.service;
 
+import com.danydandy.SalonSpa.application.dto.response.PageResponse;
 import com.danydandy.SalonSpa.domain.model.AuthUser;
 import com.danydandy.SalonSpa.domain.model.User;
 import com.danydandy.SalonSpa.domain.ports.in.UserUseCase;
@@ -7,7 +8,6 @@ import com.danydandy.SalonSpa.domain.ports.out.SalonRepositoryPort;
 import com.danydandy.SalonSpa.domain.ports.out.UserRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
@@ -17,13 +17,15 @@ public class UserService implements UserUseCase {
     private final SalonRepositoryPort salonRepositoryPort;
 
     @Override
-    public Flux<User> findAll() {
-        return userRepositoryPort.findAll()
-                .flatMap(user -> salonRepositoryPort.findById(user.getSalonId())
-                        .map(salon -> {
-                            user.setSalon(salon);
-                            return user;
-                        }));
+    public Mono<PageResponse<User>> findPage(int page, int size) {
+        return ReactiveSecurityContextHolder.getContext()
+                .map(ctx -> (AuthUser) ctx.getAuthentication().getPrincipal())
+                .flatMap(authUser -> {
+                    if ("SUPER_ADMIN".equals(authUser.getRole())) {
+                        return paginateAll(page, size);
+                    }
+                    return paginateBySalonId(authUser.getSalonId(), page, size);
+                });
     }
 
     @Override
@@ -55,17 +57,29 @@ public class UserService implements UserUseCase {
         return userRepositoryPort.deleteById(id);
     }
 
-    @Override
-    public Flux<User> findBySalonId() {
-        return ReactiveSecurityContextHolder.getContext()
-                .map(ctx -> (AuthUser) ctx.getAuthentication().getPrincipal())
-                .flatMapMany(authUser ->
-                        userRepositoryPort.findBySalonId(authUser.getSalonId())
-                                .flatMap(user -> salonRepositoryPort.findById(user.getSalonId())
-                                        .map(salon -> {
-                                            user.setSalon(salon);
-                                            return user;
-                                        }))
-                );
+    private Mono<PageResponse<User>> paginateAll(int page, int size) {
+        return Mono.zip(
+                userRepositoryPort.countAll(),
+                userRepositoryPort.findAll(page, size)
+                        .flatMap(user -> salonRepositoryPort.findById(user.getSalonId())
+                                .map(salon -> {
+                                    user.setSalon(salon);
+                                    return user;
+                                }))
+                        .collectList()
+        ).map(tuple -> PageResponse.of(tuple.getT2(), page, size, tuple.getT1()));
+    }
+
+    private Mono<PageResponse<User>> paginateBySalonId(Long salonId, int page, int size) {
+        return Mono.zip(
+                userRepositoryPort.countBySalonId(salonId),
+                userRepositoryPort.findBySalonId(salonId, page, size)
+                        .flatMap(user -> salonRepositoryPort.findById(user.getSalonId())
+                                .map(salon -> {
+                                    user.setSalon(salon);
+                                    return user;
+                                }))
+                        .collectList()
+        ).map(tuple -> PageResponse.of(tuple.getT2(), page, size, tuple.getT1()));
     }
 }

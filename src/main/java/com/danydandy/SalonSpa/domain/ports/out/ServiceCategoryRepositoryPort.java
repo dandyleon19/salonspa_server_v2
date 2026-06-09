@@ -6,8 +6,10 @@ import reactor.core.publisher.Mono;
 
 public interface ServiceCategoryRepositoryPort {
     Mono<ServiceCategory> save(ServiceCategory serviceCategory);
-    Flux<ServiceCategory> findAll();
+    Flux<ServiceCategory> findAll(int page, int size);
+    Mono<Long> countAll();
     Mono<ServiceCategory> findById(Long id);
     Mono<Void> deleteById(Long id);
-    Flux<ServiceCategory> findBySalonId(Long id);
+    Flux<ServiceCategory> findBySalonId(Long salonId, int page, int size);
+    Mono<Long> countBySalonId(Long salonId);
 }

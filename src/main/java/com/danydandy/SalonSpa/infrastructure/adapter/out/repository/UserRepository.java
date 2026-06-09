@@ -1,15 +1,18 @@
 package com.danydandy.SalonSpa.infrastructure.adapter.out.repository;
 
-import com.danydandy.SalonSpa.domain.model.User;
 import com.danydandy.SalonSpa.infrastructure.adapter.out.entity.UserEntity;
-import org.springframework.data.r2dbc.repository.Query;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
-import org.springframework.lang.NonNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface UserRepository extends R2dbcRepository<UserEntity, Long> {
+
     Mono<UserEntity> findByEmail(String email);
-    Flux<UserEntity> findAllByOrderByCreatedAtAsc();
-    Flux<UserEntity> findBySalonIdOrderByCreatedAtAsc(Long salondId);
+
+    Flux<UserEntity> findAllByOrderByCreatedAtAsc(Pageable pageable);
+
+    Flux<UserEntity> findBySalonIdOrderByCreatedAtAsc(Long salonId, Pageable pageable);
+
+    Mono<Long> countBySalonId(Long salonId);
 }

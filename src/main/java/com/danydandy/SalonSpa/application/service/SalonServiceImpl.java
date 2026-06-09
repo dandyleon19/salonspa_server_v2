@@ -1,5 +1,6 @@
 package com.danydandy.SalonSpa.application.service;
 
+import com.danydandy.SalonSpa.application.dto.response.PageResponse;
 import com.danydandy.SalonSpa.domain.model.Salon;
 import com.danydandy.SalonSpa.domain.ports.in.SalonUseCase;
 import com.danydandy.SalonSpa.domain.ports.out.BranchRepositoryPort;
@@ -20,20 +21,14 @@ public class SalonServiceImpl implements SalonUseCase {
     }
 
     @Override
-    public Flux<Salon> findAll() {
-        return salonRepositoryPort.findAll()
-                .flatMap(salon -> branchRepositoryPort.findBySalonId(salon.getId())
-                        .collectList()
-                        .map(branches -> {
-                            salon.setBranches(branches);
-                            return salon;
-                        }));
+    public Mono<PageResponse<Salon>> findPage(int page, int size) {
+        return paginateAll(page, size);
     }
 
     @Override
     public Mono<Salon> findById(Long id) {
         return salonRepositoryPort.findById(id)
-                .flatMap(salon -> branchRepositoryPort.findBySalonId(salon.getId())
+                .flatMap(salon -> branchRepositoryPort.findBySalonId(salon.getId(), 0, 100)
                         .collectList()
                         .map(branches -> {
                             salon.setBranches(branches);
@@ -57,5 +52,19 @@ public class SalonServiceImpl implements SalonUseCase {
     @Override
     public Mono<Void> delete(Long id) {
         return salonRepositoryPort.deleteById(id);
+    }
+
+    private Mono<PageResponse<Salon>> paginateAll(int page, int size) {
+        return Mono.zip(
+            salonRepositoryPort.countAll(),
+            salonRepositoryPort.findAll(page, size)
+                    .flatMap(salon -> branchRepositoryPort.findBySalonId(salon.getId(), 0, 100)
+                            .collectList()
+                            .map(branches -> {
+                                salon.setBranches(branches);
+                                return salon;
+                            })
+                    ).collectList()
+        ).map(tuple -> PageResponse.of(tuple.getT2(), page, size, tuple.getT1()));
     }
 }

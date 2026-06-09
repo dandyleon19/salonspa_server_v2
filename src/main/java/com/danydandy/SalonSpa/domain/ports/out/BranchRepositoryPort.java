@@ -6,8 +6,10 @@ import reactor.core.publisher.Mono;
 
 public interface BranchRepositoryPort {
     Mono<Branch> save(Branch salon);
-    Flux<Branch> findAll();
+    Flux<Branch> findAll(int page, int size);
+    Mono<Long> countAll();
     Mono<Branch> findById(Long id);
     Mono<Void> deleteById(Long id);
-    Flux<Branch> findBySalonId(Long id);
+    Flux<Branch> findBySalonId(Long salonId, int page, int size);
+    Mono<Long> countBySalonId(Long salonId);
 }

@@ -1,45 +1,66 @@
 package com.danydandy.SalonSpa.infrastructure.adapter.in;
 
+import com.danydandy.SalonSpa.application.dto.request.UpdateUserRequest;
+import com.danydandy.SalonSpa.application.dto.response.PageResponse;
 import com.danydandy.SalonSpa.application.dto.response.UserResponse;
-import com.danydandy.SalonSpa.domain.model.AuthUser;
-import com.danydandy.SalonSpa.domain.model.User;
+import com.danydandy.SalonSpa.application.mapper.RequestDtoMapper;
 import com.danydandy.SalonSpa.domain.ports.in.UserUseCase;
 import com.danydandy.SalonSpa.infrastructure.adapter.out.mapper.UserMapper;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
+@Validated
 public class UserController {
 
     private final UserUseCase userUseCase;
     private final UserMapper userMapper;
+    private final RequestDtoMapper requestDtoMapper;
 
     @GetMapping
-    public ResponseEntity<Flux<UserResponse>> getAll(Authentication auth) {
-        AuthUser user = (AuthUser) auth.getPrincipal();
-        if (user.getRole().equals("SUPER_ADMIN")) return new ResponseEntity<>(userUseCase.findAll().map(userMapper::toResponse), HttpStatus.OK);
-        return new ResponseEntity<>(userUseCase.findBySalonId().map(userMapper::toResponse), HttpStatus.OK);
+    public Mono<ResponseEntity<PageResponse<UserResponse>>> getAll(
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Positive @Max(100) int size
+    ) {
+        return userUseCase.findPage(page, size)
+                .map(pageResponse -> PageResponse.of(
+                        pageResponse.content().stream().map(userMapper::toResponse).toList(),
+                        pageResponse.page(),
+                        pageResponse.size(),
+                        pageResponse.totalElements()
+                ))
+                .map(ResponseEntity::ok);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Mono<UserResponse>> getById(@PathVariable Long id) {
-        return new ResponseEntity<>(userUseCase.findById(id).map(userMapper::toResponse), HttpStatus.OK);
+    public Mono<ResponseEntity<UserResponse>> getById(@PathVariable @Positive Long id) {
+        return userUseCase.findById(id)
+                .map(userMapper::toResponse)
+                .map(ResponseEntity::ok);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Mono<UserResponse>> update(@PathVariable Long id, @RequestBody User user) {
-        return new ResponseEntity<>(userUseCase.update(id, user).map(userMapper::toResponse), HttpStatus.OK);
+    public Mono<ResponseEntity<UserResponse>> update(
+            @PathVariable @Positive Long id,
+            @Valid @RequestBody UpdateUserRequest request
+    ) {
+        return userUseCase.update(id, requestDtoMapper.toUser(request))
+                .map(userMapper::toResponse)
+                .map(ResponseEntity::ok);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Mono<Void>> delete(@PathVariable Long id) {
-        return new ResponseEntity<>(userUseCase.delete(id), HttpStatus.NO_CONTENT);
+    public Mono<ResponseEntity<Void>> delete(@PathVariable @Positive Long id) {
+        return userUseCase.delete(id)
+                .then(Mono.just(ResponseEntity.noContent().build()));
     }
 }

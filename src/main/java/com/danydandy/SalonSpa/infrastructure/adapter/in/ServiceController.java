@@ -1,47 +1,64 @@
 package com.danydandy.SalonSpa.infrastructure.adapter.in;
 
-import com.danydandy.SalonSpa.domain.model.AuthUser;
+import com.danydandy.SalonSpa.application.dto.request.CreateServiceRequest;
+import com.danydandy.SalonSpa.application.dto.request.UpdateServiceRequest;
+import com.danydandy.SalonSpa.application.dto.response.PageResponse;
+import com.danydandy.SalonSpa.application.mapper.RequestDtoMapper;
 import com.danydandy.SalonSpa.domain.model.Service;
 import com.danydandy.SalonSpa.domain.ports.in.ServiceUseCase;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/api/services")
 @RequiredArgsConstructor
+@Validated
 public class ServiceController {
 
     private final ServiceUseCase serviceUseCase;
+    private final RequestDtoMapper requestDtoMapper;
 
     @PostMapping
-    public ResponseEntity<Mono<Service>> create(@RequestBody Service service) {
-        return new ResponseEntity<>(serviceUseCase.create(service), HttpStatus.CREATED);
+    public Mono<ResponseEntity<Service>> create(@Valid @RequestBody CreateServiceRequest request) {
+        return serviceUseCase.create(requestDtoMapper.toService(request))
+                .map(service -> ResponseEntity.status(HttpStatus.CREATED).body(service));
     }
 
     @GetMapping
-    public ResponseEntity<Flux<Service>> getAll(Authentication auth) {
-        AuthUser user = (AuthUser) auth.getPrincipal();
-        if (user.getRole().equals("SUPER_ADMIN")) return new ResponseEntity<>(serviceUseCase.findAll(), HttpStatus.OK);
-        return new ResponseEntity<>(serviceUseCase.findBySalonId(), HttpStatus.OK);
+    public Mono<ResponseEntity<PageResponse<Service>>> getAll(
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Positive @Max(100) int size
+    ) {
+        return serviceUseCase.findPage(page, size)
+                .map(ResponseEntity::ok);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Mono<Service>> getById(@PathVariable Long id) {
-        return new ResponseEntity<>(serviceUseCase.findById(id), HttpStatus.OK);
+    public Mono<ResponseEntity<Service>> getById(@PathVariable @Positive Long id) {
+        return serviceUseCase.findById(id)
+                .map(ResponseEntity::ok);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Mono<Service>> update(@PathVariable Long id, @RequestBody Service service) {
-        return new ResponseEntity<>(serviceUseCase.update(id, service), HttpStatus.OK);
+    public Mono<ResponseEntity<Service>> update(
+            @PathVariable @Positive Long id,
+            @Valid @RequestBody UpdateServiceRequest request
+    ) {
+        return serviceUseCase.update(id, requestDtoMapper.toService(request))
+                .map(ResponseEntity::ok);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Mono<Void>> delete(@PathVariable Long id) {
-        return new ResponseEntity<>(serviceUseCase.delete(id), HttpStatus.NO_CONTENT);
+    public Mono<ResponseEntity<Void>> delete(@PathVariable @Positive Long id) {
+        return serviceUseCase.delete(id)
+                .then(Mono.just(ResponseEntity.noContent().build()));
     }
 }

@@ -4,6 +4,7 @@ import com.danydandy.SalonSpa.domain.model.User;
 import com.danydandy.SalonSpa.domain.ports.out.UserRepositoryPort;
 import com.danydandy.SalonSpa.infrastructure.adapter.out.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -20,9 +21,14 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
-    public Flux<User> findAll() {
-        return userRepository.findAllByOrderByCreatedAtAsc()
+    public Flux<User> findAll(int page, int size) {
+        return userRepository.findAllByOrderByCreatedAtAsc(PageRequest.of(page, size))
                 .map(userMapper::toDomain);
+    }
+
+    @Override
+    public Mono<Long> countAll() {
+        return userRepository.count();
     }
 
     @Override
@@ -43,8 +49,13 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
-    public Flux<User> findBySalonId(Long id) {
-        return userRepository.findBySalonIdOrderByCreatedAtAsc(id)
+    public Flux<User> findBySalonId(Long salonId, int page, int size) {
+        return userRepository.findBySalonIdOrderByCreatedAtAsc(salonId, PageRequest.of(page, size))
                 .map(userMapper::toDomain);
+    }
+
+    @Override
+    public Mono<Long> countBySalonId(Long salonId) {
+        return userRepository.countBySalonId(salonId);
     }
 }

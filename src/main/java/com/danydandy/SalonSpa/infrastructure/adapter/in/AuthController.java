@@ -1,9 +1,12 @@
 package com.danydandy.SalonSpa.infrastructure.adapter.in;
 
+import com.danydandy.SalonSpa.application.dto.request.CreateUserRequest;
+import com.danydandy.SalonSpa.application.dto.request.LoginRequest;
+import com.danydandy.SalonSpa.application.mapper.RequestDtoMapper;
 import com.danydandy.SalonSpa.domain.model.AuthResponse;
-import com.danydandy.SalonSpa.domain.model.LoginRequest;
 import com.danydandy.SalonSpa.domain.model.User;
 import com.danydandy.SalonSpa.domain.ports.in.AuthUseCase;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,14 +22,17 @@ import reactor.core.publisher.Mono;
 public class AuthController {
 
     private final AuthUseCase authUseCase;
+    private final RequestDtoMapper requestDtoMapper;
 
     @PostMapping("/register")
-    public ResponseEntity<Mono<User>> register(@RequestBody User user) {
-        return new ResponseEntity<>(authUseCase.register(user), HttpStatus.CREATED);
+    public Mono<ResponseEntity<User>> register(@Valid @RequestBody CreateUserRequest request) {
+        return authUseCase.register(requestDtoMapper.toUser(request))
+                .map(user -> ResponseEntity.status(HttpStatus.CREATED).body(user));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Mono<AuthResponse>> login(@RequestBody LoginRequest request) {
-        return new ResponseEntity<>(authUseCase.login(request.getEmail(), request.getPassword()), HttpStatus.OK);
+    public Mono<ResponseEntity<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
+        return authUseCase.login(request.getEmail(), request.getPassword())
+                .map(ResponseEntity::ok);
     }
 }

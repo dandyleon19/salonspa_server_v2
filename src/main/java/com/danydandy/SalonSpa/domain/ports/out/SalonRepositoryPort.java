@@ -6,7 +6,8 @@ import reactor.core.publisher.Mono;
 
 public interface SalonRepositoryPort {
     Mono<Salon> save(Salon salon);
-    Flux<Salon> findAll();
+    Flux<Salon> findAll(int page, int size);
+    Mono<Long> countAll();
     Mono<Salon> findById(Long id);
     Mono<Void> deleteById(Long id);
 }

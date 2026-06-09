@@ -1,11 +1,12 @@
 package com.danydandy.SalonSpa.application.service;
 
+import com.danydandy.SalonSpa.application.dto.response.PageResponse;
+import com.danydandy.SalonSpa.domain.exception.NotFoundException;
 import com.danydandy.SalonSpa.domain.model.*;
 import com.danydandy.SalonSpa.domain.ports.in.ClientUseCase;
 import com.danydandy.SalonSpa.domain.ports.out.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -31,49 +32,39 @@ public class ClientServiceImpl implements ClientUseCase {
     }
 
     @Override
-    public Flux<Client> findAll() {
-        return clientRepositoryPort.findAll()
-                .flatMap(client -> clinicalRecordRepositoryPort.findByClientId(client.getId())
-                        .collectList()
-                        .map(clinicalRecords -> {
-                            client.setClinicalRecords(clinicalRecords);
-                            return client;
-                        }));
+    public Mono<PageResponse<Client>> findPage(int page, int size) {
+        return ReactiveSecurityContextHolder.getContext()
+                .map(ctx -> (AuthUser) ctx.getAuthentication().getPrincipal())
+                .flatMap(authUser -> {
+                    if ("SUPER_ADMIN".equals(authUser.getRole())) {
+                        return paginateAll(page, size);
+                    }
+                    return paginateBySalonId(authUser.getSalonId(), page, size);
+                });
     }
 
     @Override
     public Mono<Client> findById(Long id) {
         return clientRepositoryPort.findById(id)
-                .flatMap(client -> clinicalRecordRepositoryPort.findByClientId(client.getId())
-                        .flatMap(clinicalRecord -> {
-                            Mono<List<String>> servicesMono = clinicalRecordServiceRepositoryPort.findByClinicalRecordId(clinicalRecord.getId())
-                                            .flatMap(clinicalRecordService -> serviceRepositoryPort.findById(clinicalRecordService.getServiceId()))
-                                            .map(Service::getName)
-                                            .collectList();
-                            return Mono.zip(
-                                    userRepositoryPort.findById(clinicalRecord.getUserId()),
-                                    branchRepositoryPort.findById(clinicalRecord.getBranchId()),
-                                    servicesMono
-                            ).map(tuple -> {
-                                User user = tuple.getT1();
-                                Branch branch = tuple.getT2();
-                                List<String> services = tuple.getT3();
-                                clinicalRecord.setUserName(user.getFirstName() + " " + user.getLastName());
-                                clinicalRecord.setBranchName(branch.getName());
-                                clinicalRecord.setAssociatedServices(services);
-                                return clinicalRecord;
-                            });
-                        })
-                        .collectList()
-                        .map(clinicalRecords -> {
-                            client.setClinicalRecords(clinicalRecords);
-                            return client;
-                        }));
+                .switchIfEmpty(Mono.error(NotFoundException.forResource("Client", id)));
+    }
+
+    @Override
+    public Mono<PageResponse<ClinicalRecord>> findClinicalRecordsPage(Long clientId, int page, int size) {
+        return clientRepositoryPort.findById(clientId)
+                .switchIfEmpty(Mono.error(NotFoundException.forResource("Client", clientId)))
+                .flatMap(client -> Mono.zip(
+                        clinicalRecordRepositoryPort.countByClientId(client.getId()),
+                        clinicalRecordRepositoryPort.findByClientId(client.getId(), page, size)
+                                .flatMap(this::enrichClinicalRecord)
+                                .collectList()
+                ).map(tuple -> PageResponse.of(tuple.getT2(), page, size, tuple.getT1())));
     }
 
     @Override
     public Mono<Client> update(Long id, Client client) {
         return clientRepositoryPort.findById(id)
+                .switchIfEmpty(Mono.error(NotFoundException.forResource("Client", id)))
                 .flatMap(existing -> {
                     existing.setFirstName(client.getFirstName());
                     existing.setLastName(client.getLastName());
@@ -88,15 +79,48 @@ public class ClientServiceImpl implements ClientUseCase {
 
     @Override
     public Mono<Void> delete(Long id) {
-        return clientRepositoryPort.deleteById(id);
+        return clientRepositoryPort.findById(id)
+                .switchIfEmpty(Mono.error(NotFoundException.forResource("Client", id)))
+                .flatMap(client -> clientRepositoryPort.deleteById(id));
     }
 
-    @Override
-    public Flux<Client> findBySalonId() {
-        return ReactiveSecurityContextHolder.getContext()
-                .map(ctx -> (AuthUser) ctx.getAuthentication().getPrincipal())
-                .flatMapMany(authUser ->
-                        clientRepositoryPort.findBySalonId(authUser.getSalonId())
-                );
+    private Mono<ClinicalRecord> enrichClinicalRecord(ClinicalRecord clinicalRecord) {
+        Mono<List<String>> servicesMono = clinicalRecordServiceRepositoryPort
+                .findByClinicalRecordId(clinicalRecord.getId())
+                .flatMap(clinicalRecordService -> serviceRepositoryPort
+                        .findById(clinicalRecordService.getServiceId()))
+                .map(Service::getName)
+                .collectList();
+
+        Mono<String> userNameMono = clinicalRecord.getUserId() != null
+                ? userRepositoryPort.findById(clinicalRecord.getUserId())
+                        .map(user -> user.getFirstName() + " " + user.getLastName())
+                : Mono.just("");
+
+        Mono<String> branchNameMono = clinicalRecord.getBranchId() != null
+                ? branchRepositoryPort.findById(clinicalRecord.getBranchId()).map(Branch::getName)
+                : Mono.just("");
+
+        return Mono.zip(userNameMono, branchNameMono, servicesMono)
+                .map(tuple -> {
+                    clinicalRecord.setUserName(tuple.getT1());
+                    clinicalRecord.setBranchName(tuple.getT2());
+                    clinicalRecord.setAssociatedServices(tuple.getT3());
+                    return clinicalRecord;
+                });
+    }
+
+    private Mono<PageResponse<Client>> paginateAll(int page, int size) {
+        return Mono.zip(
+                clientRepositoryPort.countAll(),
+                clientRepositoryPort.findAll(page, size).collectList()
+        ).map(tuple -> PageResponse.of(tuple.getT2(), page, size, tuple.getT1()));
+    }
+
+    private Mono<PageResponse<Client>> paginateBySalonId(Long salonId, int page, int size) {
+        return Mono.zip(
+                clientRepositoryPort.countBySalonId(salonId),
+                clientRepositoryPort.findBySalonId(salonId, page, size).collectList()
+        ).map(tuple -> PageResponse.of(tuple.getT2(), page, size, tuple.getT1()));
     }
 }

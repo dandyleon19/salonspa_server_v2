@@ -1,14 +1,24 @@
 package com.danydandy.SalonSpa.infrastructure.adapter.in;
 
+import com.danydandy.SalonSpa.application.dto.request.CreateBranchRequest;
+import com.danydandy.SalonSpa.application.dto.request.UpdateBranchRequest;
 import com.danydandy.SalonSpa.application.dto.response.BranchResponse;
+import com.danydandy.SalonSpa.application.dto.response.PageResponse;
+import com.danydandy.SalonSpa.application.mapper.RequestDtoMapper;
 import com.danydandy.SalonSpa.domain.model.AuthUser;
 import com.danydandy.SalonSpa.domain.model.Branch;
+import com.danydandy.SalonSpa.domain.model.Client;
 import com.danydandy.SalonSpa.domain.ports.in.BranchUseCase;
 import com.danydandy.SalonSpa.infrastructure.adapter.out.mapper.BranchMapper;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -16,35 +26,49 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/api/branches")
 @RequiredArgsConstructor
+@Validated
 public class BranchController {
 
     private final BranchUseCase branchUseCase;
     private final BranchMapper branchMapper;
+    private final RequestDtoMapper requestDtoMapper;
 
     @PostMapping
-    public ResponseEntity<Mono<BranchResponse>> create(@RequestBody Branch branch) {
-        return new ResponseEntity<>(branchUseCase.create(branch).map(branchMapper::toResponse), HttpStatus.CREATED);
+    public Mono<ResponseEntity<BranchResponse>> create(@Valid @RequestBody CreateBranchRequest request) {
+        return branchUseCase.create(requestDtoMapper.toBranch(request))
+                .map(branchMapper::toResponse)
+                .map(branch -> ResponseEntity.status(HttpStatus.CREATED).body(branch));
     }
 
     @GetMapping
-    public ResponseEntity<Flux<BranchResponse>> getAll(Authentication auth) {
-        AuthUser user = (AuthUser) auth.getPrincipal();
-        if (user.getRole().equals("SUPER_ADMIN")) return new ResponseEntity<>(branchUseCase.findAll().map(branchMapper::toResponse), HttpStatus.OK);
-        return new ResponseEntity<>(branchUseCase.findBySalonId().map(branchMapper::toResponse), HttpStatus.OK);
+    public Mono<ResponseEntity<PageResponse<Branch>>> getAll(
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Positive @Max(100) int size
+    ) {
+        return branchUseCase.findPage(page, size)
+                .map(ResponseEntity::ok);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Mono<BranchResponse>> getById(@PathVariable Long id) {
-        return new ResponseEntity<>(branchUseCase.findById(id).map(branchMapper::toResponse), HttpStatus.OK);
+    public Mono<ResponseEntity<BranchResponse>> getById(@PathVariable @Positive Long id) {
+        return branchUseCase.findById(id)
+                .map(branchMapper::toResponse)
+                .map(ResponseEntity::ok);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Mono<BranchResponse>> update(@PathVariable Long id, @RequestBody Branch branch) {
-        return new ResponseEntity<>(branchUseCase.update(id, branch).map(branchMapper::toResponse), HttpStatus.OK);
+    public Mono<ResponseEntity<BranchResponse>> update(
+            @PathVariable @Positive Long id,
+            @Valid @RequestBody UpdateBranchRequest request
+    ) {
+        return branchUseCase.update(id, requestDtoMapper.toBranch(request))
+                .map(branchMapper::toResponse)
+                .map(ResponseEntity::ok);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Mono<Void>> delete(@PathVariable Long id) {
-        return new ResponseEntity<>(branchUseCase.delete(id), HttpStatus.NO_CONTENT);
+    public Mono<ResponseEntity<Void>> delete(@PathVariable @Positive Long id) {
+        return branchUseCase.delete(id)
+                .then(Mono.just(ResponseEntity.noContent().build()));
     }
 }

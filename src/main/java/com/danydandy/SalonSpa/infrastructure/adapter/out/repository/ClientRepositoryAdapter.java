@@ -4,6 +4,7 @@ import com.danydandy.SalonSpa.domain.model.Client;
 import com.danydandy.SalonSpa.domain.ports.out.ClientRepositoryPort;
 import com.danydandy.SalonSpa.infrastructure.adapter.out.mapper.ClientMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -20,9 +21,14 @@ public class ClientRepositoryAdapter implements ClientRepositoryPort {
     }
 
     @Override
-    public Flux<Client> findAll() {
-        return clientRepository.findAll()
+    public Flux<Client> findAll(int page, int size) {
+        return clientRepository.findAllByOrderByCreatedAtAsc(PageRequest.of(page, size))
                 .map(clientMapper::toDomain);
+    }
+
+    @Override
+    public Mono<Long> countAll() {
+        return clientRepository.count();
     }
 
     @Override
@@ -37,8 +43,13 @@ public class ClientRepositoryAdapter implements ClientRepositoryPort {
     }
 
     @Override
-    public Flux<Client> findBySalonId(Long id) {
-        return clientRepository.findBySalonIdOrderByCreatedAtAsc(id)
+    public Flux<Client> findBySalonId(Long salonId, int page, int size) {
+        return clientRepository.findBySalonIdOrderByCreatedAtAsc(salonId, PageRequest.of(page, size))
                 .map(clientMapper::toDomain);
+    }
+
+    @Override
+    public Mono<Long> countBySalonId(Long salonId) {
+        return clientRepository.countBySalonId(salonId);
     }
 }
