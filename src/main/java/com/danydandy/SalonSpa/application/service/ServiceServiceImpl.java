@@ -1,12 +1,12 @@
 package com.danydandy.SalonSpa.application.service;
 
 import com.danydandy.SalonSpa.application.dto.response.PageResponse;
-import com.danydandy.SalonSpa.domain.model.AuthUser;
+import com.danydandy.SalonSpa.application.security.SecurityHelper;
+import com.danydandy.SalonSpa.domain.exception.NotFoundException;
 import com.danydandy.SalonSpa.domain.model.Service;
 import com.danydandy.SalonSpa.domain.ports.in.ServiceUseCase;
 import com.danydandy.SalonSpa.domain.ports.out.ServiceRepositoryPort;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
@@ -16,8 +16,7 @@ public class ServiceServiceImpl implements ServiceUseCase {
 
     @Override
     public Mono<Service> create(Service service) {
-        return ReactiveSecurityContextHolder.getContext()
-                .map(ctx -> (AuthUser) ctx.getAuthentication().getPrincipal())
+        return SecurityHelper.currentUser()
                 .flatMap(authUser -> {
                     service.setSalonId(authUser.getSalonId());
                     return serviceRepositoryPort.save(service);
@@ -26,10 +25,9 @@ public class ServiceServiceImpl implements ServiceUseCase {
 
     @Override
     public Mono<PageResponse<Service>> findPage(int page, int size) {
-        return ReactiveSecurityContextHolder.getContext()
-                .map(ctx -> (AuthUser) ctx.getAuthentication().getPrincipal())
+        return SecurityHelper.currentUser()
                 .flatMap(authUser -> {
-                    if ("SUPER_ADMIN".equals(authUser.getRole())) {
+                    if (SecurityHelper.isSuperAdmin(authUser)) {
                         return paginateAll(page, size);
                     }
                     return paginateBySalonId(authUser.getSalonId(), page, size);
@@ -38,25 +36,35 @@ public class ServiceServiceImpl implements ServiceUseCase {
 
     @Override
     public Mono<Service> findById(Long id) {
-        return serviceRepositoryPort.findById(id);
+        return SecurityHelper.currentUser()
+                .flatMap(authUser -> serviceRepositoryPort.findById(id)
+                        .switchIfEmpty(Mono.error(NotFoundException.forResource("Service", id)))
+                        .flatMap(service -> SecurityHelper.requireSameSalon(service, service.getSalonId(), authUser, "Service", id)));
     }
 
     @Override
     public Mono<Service> update(Long id, Service service) {
-        return serviceRepositoryPort.findById(id)
-                .flatMap(existing -> {
-                    existing.setName(service.getName());
-                    existing.setDescription(service.getDescription());
-                    existing.setLongDescription(service.getLongDescription());
-                    existing.setPrice(service.getPrice());
-                    existing.setIsActive(service.getIsActive());
-                    return serviceRepositoryPort.save(existing);
-                });
+        return SecurityHelper.currentUser()
+                .flatMap(authUser -> serviceRepositoryPort.findById(id)
+                        .switchIfEmpty(Mono.error(NotFoundException.forResource("Service", id)))
+                        .flatMap(existing -> SecurityHelper.requireSameSalon(existing, existing.getSalonId(), authUser, "Service", id))
+                        .flatMap(existing -> {
+                            existing.setName(service.getName());
+                            existing.setDescription(service.getDescription());
+                            existing.setLongDescription(service.getLongDescription());
+                            existing.setPrice(service.getPrice());
+                            existing.setIsActive(service.getIsActive());
+                            return serviceRepositoryPort.save(existing);
+                        }));
     }
 
     @Override
     public Mono<Void> delete(Long id) {
-        return serviceRepositoryPort.deleteById(id);
+        return SecurityHelper.currentUser()
+                .flatMap(authUser -> serviceRepositoryPort.findById(id)
+                        .switchIfEmpty(Mono.error(NotFoundException.forResource("Service", id)))
+                        .flatMap(service -> SecurityHelper.requireSameSalon(service, service.getSalonId(), authUser, "Service", id))
+                        .flatMap(service -> serviceRepositoryPort.deleteById(id)));
     }
 
     private Mono<PageResponse<Service>> paginateAll(int page, int size) {

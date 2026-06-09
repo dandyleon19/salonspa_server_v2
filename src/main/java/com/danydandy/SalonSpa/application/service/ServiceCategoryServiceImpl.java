@@ -1,13 +1,13 @@
 package com.danydandy.SalonSpa.application.service;
 
 import com.danydandy.SalonSpa.application.dto.response.PageResponse;
-import com.danydandy.SalonSpa.domain.model.AuthUser;
+import com.danydandy.SalonSpa.application.security.SecurityHelper;
+import com.danydandy.SalonSpa.domain.exception.NotFoundException;
 import com.danydandy.SalonSpa.domain.model.ServiceCategory;
 import com.danydandy.SalonSpa.domain.ports.in.ServiceCategoryUseCase;
 import com.danydandy.SalonSpa.domain.ports.out.ServiceCategoryRepositoryPort;
 import com.danydandy.SalonSpa.domain.ports.out.ServiceRepositoryPort;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
@@ -18,8 +18,7 @@ public class ServiceCategoryServiceImpl implements ServiceCategoryUseCase {
 
     @Override
     public Mono<ServiceCategory> create(ServiceCategory serviceCategory) {
-        return ReactiveSecurityContextHolder.getContext()
-                .map(ctx -> (AuthUser) ctx.getAuthentication().getPrincipal())
+        return SecurityHelper.currentUser()
                 .flatMap(authUser -> {
                     serviceCategory.setSalonId(authUser.getSalonId());
                     return serviceCategoryRepositoryPort.save(serviceCategory);
@@ -28,10 +27,9 @@ public class ServiceCategoryServiceImpl implements ServiceCategoryUseCase {
 
     @Override
     public Mono<PageResponse<ServiceCategory>> findPage(int page, int size) {
-        return ReactiveSecurityContextHolder.getContext()
-                .map(ctx -> (AuthUser) ctx.getAuthentication().getPrincipal())
+        return SecurityHelper.currentUser()
                 .flatMap(authUser -> {
-                    if ("SUPER_ADMIN".equals(authUser.getRole())) {
+                    if (SecurityHelper.isSuperAdmin(authUser)) {
                         return paginateAll(page, size);
                     }
                     return paginateBySalonId(authUser.getSalonId(), page, size);
@@ -40,29 +38,34 @@ public class ServiceCategoryServiceImpl implements ServiceCategoryUseCase {
 
     @Override
     public Mono<ServiceCategory> findById(Long id) {
-        return serviceCategoryRepositoryPort.findById(id)
-                .flatMap(serviceCategory -> serviceRepositoryPort.findByCategoryId(serviceCategory.getId())
-                        .collectList()
-                        .map(services -> {
-                            serviceCategory.setServices(services);
-                            return serviceCategory;
-                        }));
+        return SecurityHelper.currentUser()
+                .flatMap(authUser -> serviceCategoryRepositoryPort.findById(id)
+                        .switchIfEmpty(Mono.error(NotFoundException.forResource("ServiceCategory", id)))
+                        .flatMap(category -> SecurityHelper.requireSameSalon(category, category.getSalonId(), authUser, "ServiceCategory", id))
+                        .flatMap(this::enrichWithServices));
     }
 
     @Override
     public Mono<ServiceCategory> update(Long id, ServiceCategory serviceCategory) {
-        return serviceCategoryRepositoryPort.findById(id)
-                .flatMap(existing -> {
-                    existing.setName(serviceCategory.getName());
-                    existing.setDescription(serviceCategory.getDescription());
-                    existing.setLongDescription(serviceCategory.getLongDescription());
-                    return serviceCategoryRepositoryPort.save(existing);
-                });
+        return SecurityHelper.currentUser()
+                .flatMap(authUser -> serviceCategoryRepositoryPort.findById(id)
+                        .switchIfEmpty(Mono.error(NotFoundException.forResource("ServiceCategory", id)))
+                        .flatMap(existing -> SecurityHelper.requireSameSalon(existing, existing.getSalonId(), authUser, "ServiceCategory", id))
+                        .flatMap(existing -> {
+                            existing.setName(serviceCategory.getName());
+                            existing.setDescription(serviceCategory.getDescription());
+                            existing.setLongDescription(serviceCategory.getLongDescription());
+                            return serviceCategoryRepositoryPort.save(existing);
+                        }));
     }
 
     @Override
     public Mono<Void> delete(Long id) {
-        return serviceCategoryRepositoryPort.deleteById(id);
+        return SecurityHelper.currentUser()
+                .flatMap(authUser -> serviceCategoryRepositoryPort.findById(id)
+                        .switchIfEmpty(Mono.error(NotFoundException.forResource("ServiceCategory", id)))
+                        .flatMap(category -> SecurityHelper.requireSameSalon(category, category.getSalonId(), authUser, "ServiceCategory", id))
+                        .flatMap(category -> serviceCategoryRepositoryPort.deleteById(id)));
     }
 
     private Mono<ServiceCategory> enrichWithServices(ServiceCategory serviceCategory) {

@@ -1,13 +1,13 @@
 package com.danydandy.SalonSpa.application.service;
 
 import com.danydandy.SalonSpa.application.dto.response.PageResponse;
-import com.danydandy.SalonSpa.domain.model.AuthUser;
+import com.danydandy.SalonSpa.application.security.SecurityHelper;
+import com.danydandy.SalonSpa.domain.exception.NotFoundException;
 import com.danydandy.SalonSpa.domain.model.User;
 import com.danydandy.SalonSpa.domain.ports.in.UserUseCase;
 import com.danydandy.SalonSpa.domain.ports.out.SalonRepositoryPort;
 import com.danydandy.SalonSpa.domain.ports.out.UserRepositoryPort;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
@@ -18,10 +18,9 @@ public class UserService implements UserUseCase {
 
     @Override
     public Mono<PageResponse<User>> findPage(int page, int size) {
-        return ReactiveSecurityContextHolder.getContext()
-                .map(ctx -> (AuthUser) ctx.getAuthentication().getPrincipal())
+        return SecurityHelper.currentUser()
                 .flatMap(authUser -> {
-                    if ("SUPER_ADMIN".equals(authUser.getRole())) {
+                    if (SecurityHelper.isSuperAdmin(authUser)) {
                         return paginateAll(page, size);
                     }
                     return paginateBySalonId(authUser.getSalonId(), page, size);
@@ -30,42 +29,52 @@ public class UserService implements UserUseCase {
 
     @Override
     public Mono<User> findById(Long id) {
-        return userRepositoryPort.findById(id)
-                .flatMap(user -> salonRepositoryPort.findById(user.getSalonId())
-                        .map(salon -> {
-                            user.setSalon(salon);
-                            return user;
-                        }));
+        return SecurityHelper.currentUser()
+                .flatMap(authUser -> userRepositoryPort.findById(id)
+                        .switchIfEmpty(Mono.error(NotFoundException.forResource("User", id)))
+                        .flatMap(user -> SecurityHelper.requireSameSalon(user, user.getSalonId(), authUser, "User", id))
+                        .flatMap(this::enrichWithSalon));
     }
 
     @Override
     public Mono<User> update(Long id, User user) {
-        return userRepositoryPort.findById(id)
-                .flatMap(existing -> {
-                    existing.setFirstName(user.getFirstName());
-                    existing.setLastName(user.getLastName());
-                    existing.setEmail(user.getEmail());
-                    existing.setIsActive(user.getIsActive());
-                    existing.setCommissionPercentage(user.getCommissionPercentage());
-                    existing.setRole(user.getRole());
-                    return userRepositoryPort.save(existing);
-                });
+        return SecurityHelper.currentUser()
+                .flatMap(authUser -> userRepositoryPort.findById(id)
+                        .switchIfEmpty(Mono.error(NotFoundException.forResource("User", id)))
+                        .flatMap(existing -> SecurityHelper.requireSameSalon(existing, existing.getSalonId(), authUser, "User", id))
+                        .flatMap(existing -> {
+                            existing.setFirstName(user.getFirstName());
+                            existing.setLastName(user.getLastName());
+                            existing.setEmail(user.getEmail());
+                            existing.setIsActive(user.getIsActive());
+                            existing.setCommissionPercentage(user.getCommissionPercentage());
+                            existing.setRole(user.getRole());
+                            return userRepositoryPort.save(existing);
+                        }));
     }
 
     @Override
     public Mono<Void> delete(Long id) {
-        return userRepositoryPort.deleteById(id);
+        return SecurityHelper.currentUser()
+                .flatMap(authUser -> userRepositoryPort.findById(id)
+                        .switchIfEmpty(Mono.error(NotFoundException.forResource("User", id)))
+                        .flatMap(user -> SecurityHelper.requireSameSalon(user, user.getSalonId(), authUser, "User", id))
+                        .flatMap(user -> userRepositoryPort.deleteById(id)));
+    }
+
+    private Mono<User> enrichWithSalon(User user) {
+        return salonRepositoryPort.findById(user.getSalonId())
+                .map(salon -> {
+                    user.setSalon(salon);
+                    return user;
+                });
     }
 
     private Mono<PageResponse<User>> paginateAll(int page, int size) {
         return Mono.zip(
                 userRepositoryPort.countAll(),
                 userRepositoryPort.findAll(page, size)
-                        .flatMap(user -> salonRepositoryPort.findById(user.getSalonId())
-                                .map(salon -> {
-                                    user.setSalon(salon);
-                                    return user;
-                                }))
+                        .flatMap(this::enrichWithSalon)
                         .collectList()
         ).map(tuple -> PageResponse.of(tuple.getT2(), page, size, tuple.getT1()));
     }
@@ -74,11 +83,7 @@ public class UserService implements UserUseCase {
         return Mono.zip(
                 userRepositoryPort.countBySalonId(salonId),
                 userRepositoryPort.findBySalonId(salonId, page, size)
-                        .flatMap(user -> salonRepositoryPort.findById(user.getSalonId())
-                                .map(salon -> {
-                                    user.setSalon(salon);
-                                    return user;
-                                }))
+                        .flatMap(this::enrichWithSalon)
                         .collectList()
         ).map(tuple -> PageResponse.of(tuple.getT2(), page, size, tuple.getT1()));
     }

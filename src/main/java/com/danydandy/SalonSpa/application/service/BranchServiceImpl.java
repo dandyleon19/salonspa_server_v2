@@ -1,14 +1,13 @@
 package com.danydandy.SalonSpa.application.service;
 
 import com.danydandy.SalonSpa.application.dto.response.PageResponse;
-import com.danydandy.SalonSpa.domain.model.AuthUser;
+import com.danydandy.SalonSpa.application.security.SecurityHelper;
+import com.danydandy.SalonSpa.domain.exception.NotFoundException;
 import com.danydandy.SalonSpa.domain.model.Branch;
-import com.danydandy.SalonSpa.domain.model.Client;
 import com.danydandy.SalonSpa.domain.ports.in.BranchUseCase;
 import com.danydandy.SalonSpa.domain.ports.out.BranchRepositoryPort;
 import com.danydandy.SalonSpa.domain.ports.out.SalonRepositoryPort;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -20,8 +19,7 @@ public class BranchServiceImpl implements BranchUseCase {
 
     @Override
     public Mono<Branch> create(Branch branch) {
-        return ReactiveSecurityContextHolder.getContext()
-                .map(ctx -> (AuthUser) ctx.getAuthentication().getPrincipal())
+        return SecurityHelper.currentUser()
                 .flatMap(authUser -> {
                     branch.setSalonId(authUser.getSalonId());
                     return branchRepositoryPort.save(branch);
@@ -30,10 +28,9 @@ public class BranchServiceImpl implements BranchUseCase {
 
     @Override
     public Mono<PageResponse<Branch>> findPage(int page, int size) {
-        return ReactiveSecurityContextHolder.getContext()
-                .map(ctx -> (AuthUser) ctx.getAuthentication().getPrincipal())
+        return SecurityHelper.currentUser()
                 .flatMap(authUser -> {
-                    if ("SUPER_ADMIN".equals(authUser.getRole())) {
+                    if (SecurityHelper.isSuperAdmin(authUser)) {
                         return paginateAll(page, size);
                     }
                     return paginateBySalonId(authUser.getSalonId(), page, size);
@@ -42,53 +39,58 @@ public class BranchServiceImpl implements BranchUseCase {
 
     @Override
     public Mono<Branch> findById(Long id) {
-        return branchRepositoryPort.findById(id)
-                .flatMap(branch -> salonRepositoryPort.findById(branch.getSalonId())
-                        .map(salon -> {
-                            branch.setSalon(salon);
-                            return branch;
-                        }));
+        return SecurityHelper.currentUser()
+                .flatMap(authUser -> branchRepositoryPort.findById(id)
+                        .switchIfEmpty(Mono.error(NotFoundException.forResource("Branch", id)))
+                        .flatMap(branch -> SecurityHelper.requireSameSalon(branch, branch.getSalonId(), authUser, "Branch", id))
+                        .flatMap(this::enrichWithSalon));
     }
 
     @Override
     public Mono<Branch> update(Long id, Branch branch) {
-        return branchRepositoryPort.findById(id)
-                .flatMap(existing -> {
-                    existing.setName(branch.getName());
-                    existing.setCity(branch.getCity());
-                    existing.setAddress(branch.getAddress());
-                    return branchRepositoryPort.save(existing);
-                });
+        return SecurityHelper.currentUser()
+                .flatMap(authUser -> branchRepositoryPort.findById(id)
+                        .switchIfEmpty(Mono.error(NotFoundException.forResource("Branch", id)))
+                        .flatMap(existing -> SecurityHelper.requireSameSalon(existing, existing.getSalonId(), authUser, "Branch", id))
+                        .flatMap(existing -> {
+                            existing.setName(branch.getName());
+                            existing.setCity(branch.getCity());
+                            existing.setAddress(branch.getAddress());
+                            return branchRepositoryPort.save(existing);
+                        }));
     }
 
     @Override
     public Mono<Void> delete(Long id) {
-        return branchRepositoryPort.deleteById(id);
+        return SecurityHelper.currentUser()
+                .flatMap(authUser -> branchRepositoryPort.findById(id)
+                        .switchIfEmpty(Mono.error(NotFoundException.forResource("Branch", id)))
+                        .flatMap(branch -> SecurityHelper.requireSameSalon(branch, branch.getSalonId(), authUser, "Branch", id))
+                        .flatMap(branch -> branchRepositoryPort.deleteById(id)));
     }
 
     @Override
     public Flux<Branch> findBySalonId() {
-        return ReactiveSecurityContextHolder.getContext()
-                .map(ctx -> (AuthUser) ctx.getAuthentication().getPrincipal())
+        return SecurityHelper.currentUser()
                 .flatMapMany(authUser ->
                         branchRepositoryPort.findBySalonId(authUser.getSalonId(), 0, 100)
-                                .flatMap(branch -> salonRepositoryPort.findById(branch.getSalonId())
-                                        .map(salon -> {
-                                            branch.setSalon(salon);
-                                            return branch;
-                                        }))
+                                .flatMap(this::enrichWithSalon)
                 );
+    }
+
+    private Mono<Branch> enrichWithSalon(Branch branch) {
+        return salonRepositoryPort.findById(branch.getSalonId())
+                .map(salon -> {
+                    branch.setSalon(salon);
+                    return branch;
+                });
     }
 
     private Mono<PageResponse<Branch>> paginateAll(int page, int size) {
         return Mono.zip(
                 branchRepositoryPort.countAll(),
                 branchRepositoryPort.findAll(page, size)
-                        .flatMap(branch -> salonRepositoryPort.findById(branch.getSalonId())
-                                .map(salon -> {
-                                    branch.setSalon(salon);
-                                    return branch;
-                                }))
+                        .flatMap(this::enrichWithSalon)
                         .collectList()
         ).map(tuple -> PageResponse.of(tuple.getT2(), page, size, tuple.getT1()));
     }
@@ -97,11 +99,7 @@ public class BranchServiceImpl implements BranchUseCase {
         return Mono.zip(
                 branchRepositoryPort.countBySalonId(salonId),
                 branchRepositoryPort.findBySalonId(salonId, page, size)
-                        .flatMap(branch -> salonRepositoryPort.findById(branch.getSalonId())
-                                .map(salon -> {
-                                    branch.setSalon(salon);
-                                    return branch;
-                                }))
+                        .flatMap(this::enrichWithSalon)
                         .collectList()
         ).map(tuple -> PageResponse.of(tuple.getT2(), page, size, tuple.getT1()));
     }

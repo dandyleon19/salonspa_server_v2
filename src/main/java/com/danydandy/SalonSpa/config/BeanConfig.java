@@ -71,8 +71,12 @@ public class BeanConfig {
     }
 
     @Bean
-    public ClinicalRecordUseCase clinicalRecordUseCase(ClinicalRecordRepositoryPort clinicalRecordRepositoryPort, ClinicalRecordServiceRepositoryPort clinicalRecordServiceRepositoryPort) {
-        return new ClinicalRecordServiceImpl(clinicalRecordRepositoryPort, clinicalRecordServiceRepositoryPort);
+    public ClinicalRecordUseCase clinicalRecordUseCase(
+            ClinicalRecordRepositoryPort clinicalRecordRepositoryPort,
+            ClinicalRecordServiceRepositoryPort clinicalRecordServiceRepositoryPort,
+            ClientRepositoryPort clientRepositoryPort
+    ) {
+        return new ClinicalRecordServiceImpl(clinicalRecordRepositoryPort, clinicalRecordServiceRepositoryPort, clientRepositoryPort);
     }
 
     @Bean

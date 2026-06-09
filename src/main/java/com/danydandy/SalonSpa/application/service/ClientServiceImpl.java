@@ -1,12 +1,12 @@
 package com.danydandy.SalonSpa.application.service;
 
 import com.danydandy.SalonSpa.application.dto.response.PageResponse;
+import com.danydandy.SalonSpa.application.security.SecurityHelper;
 import com.danydandy.SalonSpa.domain.exception.NotFoundException;
 import com.danydandy.SalonSpa.domain.model.*;
 import com.danydandy.SalonSpa.domain.ports.in.ClientUseCase;
 import com.danydandy.SalonSpa.domain.ports.out.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -23,8 +23,7 @@ public class ClientServiceImpl implements ClientUseCase {
 
     @Override
     public Mono<Client> create(Client client) {
-        return ReactiveSecurityContextHolder.getContext()
-                .map(ctx -> (AuthUser) ctx.getAuthentication().getPrincipal())
+        return SecurityHelper.currentUser()
                 .flatMap(authUser -> {
                     client.setSalonId(authUser.getSalonId());
                     return clientRepositoryPort.save(client);
@@ -33,10 +32,9 @@ public class ClientServiceImpl implements ClientUseCase {
 
     @Override
     public Mono<PageResponse<Client>> findPage(int page, int size) {
-        return ReactiveSecurityContextHolder.getContext()
-                .map(ctx -> (AuthUser) ctx.getAuthentication().getPrincipal())
+        return SecurityHelper.currentUser()
                 .flatMap(authUser -> {
-                    if ("SUPER_ADMIN".equals(authUser.getRole())) {
+                    if (SecurityHelper.isSuperAdmin(authUser)) {
                         return paginateAll(page, size);
                     }
                     return paginateBySalonId(authUser.getSalonId(), page, size);
@@ -45,43 +43,51 @@ public class ClientServiceImpl implements ClientUseCase {
 
     @Override
     public Mono<Client> findById(Long id) {
-        return clientRepositoryPort.findById(id)
-                .switchIfEmpty(Mono.error(NotFoundException.forResource("Client", id)));
+        return SecurityHelper.currentUser()
+                .flatMap(authUser -> clientRepositoryPort.findById(id)
+                        .switchIfEmpty(Mono.error(NotFoundException.forResource("Client", id)))
+                        .flatMap(client -> SecurityHelper.requireSameSalon(client, client.getSalonId(), authUser, "Client", id)));
     }
 
     @Override
     public Mono<PageResponse<ClinicalRecord>> findClinicalRecordsPage(Long clientId, int page, int size) {
-        return clientRepositoryPort.findById(clientId)
-                .switchIfEmpty(Mono.error(NotFoundException.forResource("Client", clientId)))
-                .flatMap(client -> Mono.zip(
-                        clinicalRecordRepositoryPort.countByClientId(client.getId()),
-                        clinicalRecordRepositoryPort.findByClientId(client.getId(), page, size)
-                                .flatMap(this::enrichClinicalRecord)
-                                .collectList()
-                ).map(tuple -> PageResponse.of(tuple.getT2(), page, size, tuple.getT1())));
+        return SecurityHelper.currentUser()
+                .flatMap(authUser -> clientRepositoryPort.findById(clientId)
+                        .switchIfEmpty(Mono.error(NotFoundException.forResource("Client", clientId)))
+                        .flatMap(client -> SecurityHelper.requireSameSalon(client, client.getSalonId(), authUser, "Client", clientId))
+                        .flatMap(client -> Mono.zip(
+                                clinicalRecordRepositoryPort.countByClientId(client.getId()),
+                                clinicalRecordRepositoryPort.findByClientId(client.getId(), page, size)
+                                        .flatMap(this::enrichClinicalRecord)
+                                        .collectList()
+                        ).map(tuple -> PageResponse.of(tuple.getT2(), page, size, tuple.getT1()))));
     }
 
     @Override
     public Mono<Client> update(Long id, Client client) {
-        return clientRepositoryPort.findById(id)
-                .switchIfEmpty(Mono.error(NotFoundException.forResource("Client", id)))
-                .flatMap(existing -> {
-                    existing.setFirstName(client.getFirstName());
-                    existing.setLastName(client.getLastName());
-                    existing.setEmail(client.getEmail());
-                    existing.setPhone(client.getPhone());
-                    existing.setDocumentNumber(client.getDocumentNumber());
-                    existing.setBirthDate(client.getBirthDate());
-                    existing.setGender(client.getGender());
-                    return clientRepositoryPort.save(existing);
-                });
+        return SecurityHelper.currentUser()
+                .flatMap(authUser -> clientRepositoryPort.findById(id)
+                        .switchIfEmpty(Mono.error(NotFoundException.forResource("Client", id)))
+                        .flatMap(existing -> SecurityHelper.requireSameSalon(existing, existing.getSalonId(), authUser, "Client", id))
+                        .flatMap(existing -> {
+                            existing.setFirstName(client.getFirstName());
+                            existing.setLastName(client.getLastName());
+                            existing.setEmail(client.getEmail());
+                            existing.setPhone(client.getPhone());
+                            existing.setDocumentNumber(client.getDocumentNumber());
+                            existing.setBirthDate(client.getBirthDate());
+                            existing.setGender(client.getGender());
+                            return clientRepositoryPort.save(existing);
+                        }));
     }
 
     @Override
     public Mono<Void> delete(Long id) {
-        return clientRepositoryPort.findById(id)
-                .switchIfEmpty(Mono.error(NotFoundException.forResource("Client", id)))
-                .flatMap(client -> clientRepositoryPort.deleteById(id));
+        return SecurityHelper.currentUser()
+                .flatMap(authUser -> clientRepositoryPort.findById(id)
+                        .switchIfEmpty(Mono.error(NotFoundException.forResource("Client", id)))
+                        .flatMap(client -> SecurityHelper.requireSameSalon(client, client.getSalonId(), authUser, "Client", id))
+                        .flatMap(client -> clientRepositoryPort.deleteById(id)));
     }
 
     private Mono<ClinicalRecord> enrichClinicalRecord(ClinicalRecord clinicalRecord) {
