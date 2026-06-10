@@ -10,12 +10,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
-import org.springframework.web.cors.reactive.CorsWebFilter;
-
-import java.util.Arrays;
-import java.util.List;
 
 @Configuration
 public class BeanConfig {
@@ -26,8 +20,13 @@ public class BeanConfig {
     }
 
     @Bean
-    public AuthUseCase authUseCase(UserRepositoryPort userRepositoryPort, PasswordEncoder passwordEncoder, JwtService jwtService) {
-        return new AuthServiceImpl(userRepositoryPort, passwordEncoder, jwtService);
+    public AuthUseCase authUseCase(
+            UserRepositoryPort userRepositoryPort,
+            SalonRepositoryPort salonRepositoryPort,
+            PasswordEncoder passwordEncoder,
+            JwtService jwtService
+    ) {
+        return new AuthServiceImpl(userRepositoryPort, salonRepositoryPort, passwordEncoder, jwtService);
     }
 
     @Bean
@@ -107,19 +106,5 @@ public class BeanConfig {
     @Bean
     public ClinicalRecordServiceRepositoryPort clinicalRecordServiceRepositoryPort(ClinicalRecordServiceRepository repository, ClinicalRecordServiceMapper clinicalRecordServiceMapper) {
         return new ClinicalRecordServiceRepositoryAdapter(repository, clinicalRecordServiceMapper);
-    }
-
-    @Bean
-    public CorsWebFilter corsWebFilter() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:3000"));
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-
-        return new CorsWebFilter(source);
     }
 }

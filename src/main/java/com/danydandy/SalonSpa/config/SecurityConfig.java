@@ -2,6 +2,7 @@ package com.danydandy.SalonSpa.config;
 
 import com.danydandy.SalonSpa.infrastructure.security.JwtAuthenticationFilter;
 import com.danydandy.SalonSpa.infrastructure.security.JwtService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -10,10 +11,14 @@ import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
+import org.springframework.web.cors.reactive.CorsConfigurationSource;
 
 @Configuration
 @EnableWebFluxSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final CorsConfigurationSource corsConfigurationSource;
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter(JwtService jwtService) {
@@ -24,10 +29,12 @@ public class SecurityConfig {
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http, JwtAuthenticationFilter jwtFilter) {
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
-                .cors(cors -> {})
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
                 .authorizeExchange(exchange -> exchange
+                        .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/api/auth/bootstrap").permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/auth/register").hasAnyRole("ADMIN_USER", "SUPER_ADMIN")
                         .pathMatchers(HttpMethod.POST, "/api/salons").hasRole("SUPER_ADMIN")
                         .pathMatchers(HttpMethod.DELETE, "/api/salons/**").hasRole("SUPER_ADMIN")

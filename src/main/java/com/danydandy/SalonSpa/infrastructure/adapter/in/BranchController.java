@@ -5,9 +5,7 @@ import com.danydandy.SalonSpa.application.dto.request.UpdateBranchRequest;
 import com.danydandy.SalonSpa.application.dto.response.BranchResponse;
 import com.danydandy.SalonSpa.application.dto.response.PageResponse;
 import com.danydandy.SalonSpa.application.mapper.RequestDtoMapper;
-import com.danydandy.SalonSpa.domain.model.AuthUser;
 import com.danydandy.SalonSpa.domain.model.Branch;
-import com.danydandy.SalonSpa.domain.model.Client;
 import com.danydandy.SalonSpa.domain.ports.in.BranchUseCase;
 import com.danydandy.SalonSpa.infrastructure.adapter.out.mapper.BranchMapper;
 import jakarta.validation.Valid;
@@ -17,10 +15,8 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController

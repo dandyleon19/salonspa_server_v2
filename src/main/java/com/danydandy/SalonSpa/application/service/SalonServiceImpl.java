@@ -3,7 +3,6 @@ package com.danydandy.SalonSpa.application.service;
 import com.danydandy.SalonSpa.application.dto.response.PageResponse;
 import com.danydandy.SalonSpa.application.security.SecurityHelper;
 import com.danydandy.SalonSpa.domain.exception.NotFoundException;
-import com.danydandy.SalonSpa.domain.model.AuthUser;
 import com.danydandy.SalonSpa.domain.model.Salon;
 import com.danydandy.SalonSpa.domain.ports.in.SalonUseCase;
 import com.danydandy.SalonSpa.domain.ports.out.BranchRepositoryPort;

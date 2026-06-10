@@ -1,5 +1,6 @@
 package com.danydandy.SalonSpa.infrastructure.adapter.in;
 
+import com.danydandy.SalonSpa.application.dto.request.BootstrapRequest;
 import com.danydandy.SalonSpa.application.dto.request.CreateUserRequest;
 import com.danydandy.SalonSpa.application.dto.request.LoginRequest;
 import com.danydandy.SalonSpa.application.mapper.RequestDtoMapper;
@@ -34,5 +35,14 @@ public class AuthController {
     public Mono<ResponseEntity<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         return authUseCase.login(request.getEmail(), request.getPassword())
                 .map(ResponseEntity::ok);
+    }
+
+    @PostMapping("/bootstrap")
+    public Mono<ResponseEntity<AuthResponse>> bootstrap(@Valid @RequestBody BootstrapRequest request) {
+        return authUseCase.bootstrap(
+                        requestDtoMapper.toUser(request.getAdmin()),
+                        requestDtoMapper.toSalon(request.getSalon())
+                )
+                .map(response -> ResponseEntity.status(HttpStatus.CREATED).body(response));
     }
 }
