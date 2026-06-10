@@ -10,6 +10,7 @@ import org.mapstruct.Mapping;
 public interface BranchMapper {
     Branch toDomain(BranchEntity entity);
     BranchEntity toEntity(Branch domain);
+
     @Mapping(target = "salonName", source = "salon.name")
     BranchResponse toResponse(Branch domain);
 }

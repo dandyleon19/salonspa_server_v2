@@ -71,10 +71,10 @@ class AuthServiceImplTest {
 
         StepVerifier.create(authService.bootstrap(admin, salon))
                 .expectNextMatches(response ->
-                        response.getToken().equals("jwt-token")
-                                && response.getUserId().equals(10L)
-                                && response.getSalonId().equals(1L)
-                                && response.getRole() == Role.SUPER_ADMIN
+                        response.token().equals("jwt-token")
+                                && response.userId().equals(10L)
+                                && response.salonId().equals(1L)
+                                && response.role() == Role.SUPER_ADMIN
                 )
                 .verifyComplete();
 

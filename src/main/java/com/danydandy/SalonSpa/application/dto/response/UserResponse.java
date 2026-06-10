@@ -1,5 +1,6 @@
 package com.danydandy.SalonSpa.application.dto.response;
 
+import com.danydandy.SalonSpa.domain.model.Role;
 import lombok.Builder;
 
 @Builder
@@ -11,6 +12,8 @@ public record UserResponse(
         String email,
         Boolean isActive,
         Double commissionPercentage,
+        Role role,
+        Long salonId,
         String salonName
 ) {
 }

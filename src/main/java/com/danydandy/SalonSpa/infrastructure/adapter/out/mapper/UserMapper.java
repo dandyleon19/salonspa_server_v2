@@ -10,6 +10,7 @@ import org.mapstruct.Mapping;
 public interface UserMapper {
     User toDomain(UserEntity entity);
     UserEntity toEntity(User domain);
+
     @Mapping(
             target = "fullName",
             expression = "java(domain.getFirstName() + \" \" + domain.getLastName())"

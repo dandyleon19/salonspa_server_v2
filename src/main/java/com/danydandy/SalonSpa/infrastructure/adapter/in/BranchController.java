@@ -5,7 +5,6 @@ import com.danydandy.SalonSpa.application.dto.request.UpdateBranchRequest;
 import com.danydandy.SalonSpa.application.dto.response.BranchResponse;
 import com.danydandy.SalonSpa.application.dto.response.PageResponse;
 import com.danydandy.SalonSpa.application.mapper.RequestDtoMapper;
-import com.danydandy.SalonSpa.domain.model.Branch;
 import com.danydandy.SalonSpa.domain.ports.in.BranchUseCase;
 import com.danydandy.SalonSpa.infrastructure.adapter.out.mapper.BranchMapper;
 import jakarta.validation.Valid;
@@ -37,11 +36,17 @@ public class BranchController {
     }
 
     @GetMapping
-    public Mono<ResponseEntity<PageResponse<Branch>>> getAll(
+    public Mono<ResponseEntity<PageResponse<BranchResponse>>> getAll(
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "20") @Positive @Max(100) int size
     ) {
         return branchUseCase.findPage(page, size)
+                .map(pageResponse -> PageResponse.of(
+                        pageResponse.content().stream().map(branchMapper::toResponse).toList(),
+                        pageResponse.page(),
+                        pageResponse.size(),
+                        pageResponse.totalElements()
+                ))
                 .map(ResponseEntity::ok);
     }
 

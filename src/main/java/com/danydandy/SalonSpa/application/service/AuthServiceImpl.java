@@ -1,8 +1,8 @@
 package com.danydandy.SalonSpa.application.service;
 
+import com.danydandy.SalonSpa.application.dto.response.AuthResponse;
 import com.danydandy.SalonSpa.domain.exception.ConflictException;
 import com.danydandy.SalonSpa.domain.exception.UnauthorizedException;
-import com.danydandy.SalonSpa.domain.model.AuthResponse;
 import com.danydandy.SalonSpa.domain.model.AuthUser;
 import com.danydandy.SalonSpa.domain.model.Role;
 import com.danydandy.SalonSpa.domain.model.Salon;

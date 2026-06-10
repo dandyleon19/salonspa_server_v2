@@ -3,10 +3,11 @@ package com.danydandy.SalonSpa.infrastructure.adapter.in;
 import com.danydandy.SalonSpa.application.dto.request.BootstrapRequest;
 import com.danydandy.SalonSpa.application.dto.request.CreateUserRequest;
 import com.danydandy.SalonSpa.application.dto.request.LoginRequest;
+import com.danydandy.SalonSpa.application.dto.response.AuthResponse;
+import com.danydandy.SalonSpa.application.dto.response.UserResponse;
 import com.danydandy.SalonSpa.application.mapper.RequestDtoMapper;
-import com.danydandy.SalonSpa.domain.model.AuthResponse;
-import com.danydandy.SalonSpa.domain.model.User;
 import com.danydandy.SalonSpa.domain.ports.in.AuthUseCase;
+import com.danydandy.SalonSpa.infrastructure.adapter.out.mapper.UserMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,10 +25,12 @@ public class AuthController {
 
     private final AuthUseCase authUseCase;
     private final RequestDtoMapper requestDtoMapper;
+    private final UserMapper userMapper;
 
     @PostMapping("/register")
-    public Mono<ResponseEntity<User>> register(@Valid @RequestBody CreateUserRequest request) {
+    public Mono<ResponseEntity<UserResponse>> register(@Valid @RequestBody CreateUserRequest request) {
         return authUseCase.register(requestDtoMapper.toUser(request))
+                .map(userMapper::toResponse)
                 .map(user -> ResponseEntity.status(HttpStatus.CREATED).body(user));
     }
 

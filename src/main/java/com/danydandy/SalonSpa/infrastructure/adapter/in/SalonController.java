@@ -3,9 +3,10 @@ package com.danydandy.SalonSpa.infrastructure.adapter.in;
 import com.danydandy.SalonSpa.application.dto.request.CreateSalonRequest;
 import com.danydandy.SalonSpa.application.dto.request.UpdateSalonRequest;
 import com.danydandy.SalonSpa.application.dto.response.PageResponse;
+import com.danydandy.SalonSpa.application.dto.response.SalonResponse;
 import com.danydandy.SalonSpa.application.mapper.RequestDtoMapper;
-import com.danydandy.SalonSpa.domain.model.Salon;
 import com.danydandy.SalonSpa.domain.ports.in.SalonUseCase;
+import com.danydandy.SalonSpa.infrastructure.adapter.out.mapper.SalonMapper;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -25,34 +26,44 @@ public class SalonController {
 
     private final SalonUseCase salonUseCase;
     private final RequestDtoMapper requestDtoMapper;
+    private final SalonMapper salonMapper;
 
     @PostMapping
-    public Mono<ResponseEntity<Salon>> create(@Valid @RequestBody CreateSalonRequest request) {
+    public Mono<ResponseEntity<SalonResponse>> create(@Valid @RequestBody CreateSalonRequest request) {
         return salonUseCase.create(requestDtoMapper.toSalon(request))
+                .map(salonMapper::toResponse)
                 .map(salon -> ResponseEntity.status(HttpStatus.CREATED).body(salon));
     }
 
     @GetMapping
-    public Mono<ResponseEntity<PageResponse<Salon>>> getAll(
+    public Mono<ResponseEntity<PageResponse<SalonResponse>>> getAll(
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "20") @Positive @Max(100) int size
     ) {
         return salonUseCase.findPage(page, size)
+                .map(pageResponse -> PageResponse.of(
+                        pageResponse.content().stream().map(salonMapper::toResponse).toList(),
+                        pageResponse.page(),
+                        pageResponse.size(),
+                        pageResponse.totalElements()
+                ))
                 .map(ResponseEntity::ok);
     }
 
     @GetMapping("/{id}")
-    public Mono<ResponseEntity<Salon>> getById(@PathVariable @Positive Long id) {
+    public Mono<ResponseEntity<SalonResponse>> getById(@PathVariable @Positive Long id) {
         return salonUseCase.findById(id)
+                .map(salonMapper::toResponse)
                 .map(ResponseEntity::ok);
     }
 
     @PutMapping("/{id}")
-    public Mono<ResponseEntity<Salon>> update(
+    public Mono<ResponseEntity<SalonResponse>> update(
             @PathVariable @Positive Long id,
             @Valid @RequestBody UpdateSalonRequest request
     ) {
         return salonUseCase.update(id, requestDtoMapper.toSalon(request))
+                .map(salonMapper::toResponse)
                 .map(ResponseEntity::ok);
     }
 
