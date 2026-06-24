@@ -2,6 +2,7 @@ package com.danydandy.SalonSpa.application.service;
 
 import com.danydandy.SalonSpa.application.dto.response.PageResponse;
 import com.danydandy.SalonSpa.application.security.SecurityHelper;
+import com.danydandy.SalonSpa.application.util.SearchHelper;
 import com.danydandy.SalonSpa.domain.exception.NotFoundException;
 import com.danydandy.SalonSpa.domain.model.Branch;
 import com.danydandy.SalonSpa.domain.ports.in.BranchUseCase;
@@ -27,13 +28,14 @@ public class BranchServiceImpl implements BranchUseCase {
     }
 
     @Override
-    public Mono<PageResponse<Branch>> findPage(int page, int size) {
+    public Mono<PageResponse<Branch>> findPage(int page, int size, String search) {
+        String searchFilter = SearchHelper.toLikePattern(search);
         return SecurityHelper.currentUser()
                 .flatMap(authUser -> {
                     if (SecurityHelper.isSuperAdmin(authUser)) {
-                        return paginateAll(page, size);
+                        return paginateAll(page, size, searchFilter);
                     }
-                    return paginateBySalonId(authUser.getSalonId(), page, size);
+                    return paginateBySalonId(authUser.getSalonId(), page, size, searchFilter);
                 });
     }
 
@@ -73,7 +75,7 @@ public class BranchServiceImpl implements BranchUseCase {
     public Flux<Branch> findBySalonId() {
         return SecurityHelper.currentUser()
                 .flatMapMany(authUser ->
-                        branchRepositoryPort.findBySalonId(authUser.getSalonId(), 0, 100)
+                        branchRepositoryPort.findBySalonId(authUser.getSalonId(), 0, 100, null)
                                 .flatMap(this::enrichWithSalon)
                 );
     }
@@ -86,19 +88,19 @@ public class BranchServiceImpl implements BranchUseCase {
                 });
     }
 
-    private Mono<PageResponse<Branch>> paginateAll(int page, int size) {
+    private Mono<PageResponse<Branch>> paginateAll(int page, int size, String search) {
         return Mono.zip(
-                branchRepositoryPort.countAll(),
-                branchRepositoryPort.findAll(page, size)
+                branchRepositoryPort.countAll(search),
+                branchRepositoryPort.findAll(page, size, search)
                         .flatMap(this::enrichWithSalon)
                         .collectList()
         ).map(tuple -> PageResponse.of(tuple.getT2(), page, size, tuple.getT1()));
     }
 
-    private Mono<PageResponse<Branch>> paginateBySalonId(Long salonId, int page, int size) {
+    private Mono<PageResponse<Branch>> paginateBySalonId(Long salonId, int page, int size, String search) {
         return Mono.zip(
-                branchRepositoryPort.countBySalonId(salonId),
-                branchRepositoryPort.findBySalonId(salonId, page, size)
+                branchRepositoryPort.countBySalonId(salonId, search),
+                branchRepositoryPort.findBySalonId(salonId, page, size, search)
                         .flatMap(this::enrichWithSalon)
                         .collectList()
         ).map(tuple -> PageResponse.of(tuple.getT2(), page, size, tuple.getT1()));

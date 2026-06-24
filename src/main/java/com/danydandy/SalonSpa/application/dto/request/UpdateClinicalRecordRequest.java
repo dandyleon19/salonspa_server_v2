@@ -1,5 +1,6 @@
 package com.danydandy.SalonSpa.application.dto.request;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,4 +21,7 @@ public class UpdateClinicalRecordRequest {
     private String observations;
 
     private LocalDateTime sessionDate;
+
+    @Valid
+    private NextAppointmentRequest nextAppointment;
 }

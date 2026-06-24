@@ -4,7 +4,6 @@ import com.danydandy.SalonSpa.domain.model.ServiceCategory;
 import com.danydandy.SalonSpa.domain.ports.out.ServiceCategoryRepositoryPort;
 import com.danydandy.SalonSpa.infrastructure.adapter.out.mapper.ServiceCategoryMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -21,14 +20,15 @@ public class ServiceCategoryRepositoryAdapter implements ServiceCategoryReposito
     }
 
     @Override
-    public Flux<ServiceCategory> findAll(int page, int size) {
-        return serviceCategoryRepository.findAllByOrderByCreatedAtAsc(PageRequest.of(page, size))
+    public Flux<ServiceCategory> findAll(int page, int size, String search) {
+        long offset = (long) page * size;
+        return serviceCategoryRepository.findPage(search, size, offset)
                 .map(serviceCategoryMapper::toDomain);
     }
 
     @Override
-    public Mono<Long> countAll() {
-        return serviceCategoryRepository.count();
+    public Mono<Long> countAll(String search) {
+        return serviceCategoryRepository.countFiltered(search);
     }
 
     @Override
@@ -43,13 +43,14 @@ public class ServiceCategoryRepositoryAdapter implements ServiceCategoryReposito
     }
 
     @Override
-    public Flux<ServiceCategory> findBySalonId(Long salonId, int page, int size) {
-        return serviceCategoryRepository.findBySalonIdOrderByCreatedAtAsc(salonId, PageRequest.of(page, size))
+    public Flux<ServiceCategory> findBySalonId(Long salonId, int page, int size, String search) {
+        long offset = (long) page * size;
+        return serviceCategoryRepository.findPageBySalonId(salonId, search, size, offset)
                 .map(serviceCategoryMapper::toDomain);
     }
 
     @Override
-    public Mono<Long> countBySalonId(Long salonId) {
-        return serviceCategoryRepository.countBySalonId(salonId);
+    public Mono<Long> countBySalonId(Long salonId, String search) {
+        return serviceCategoryRepository.countBySalonId(salonId, search);
     }
 }

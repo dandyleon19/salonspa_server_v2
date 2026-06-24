@@ -2,7 +2,9 @@ package com.danydandy.SalonSpa.application.service;
 
 import com.danydandy.SalonSpa.application.dto.response.PageResponse;
 import com.danydandy.SalonSpa.application.security.SecurityHelper;
+import com.danydandy.SalonSpa.application.util.SearchHelper;
 import com.danydandy.SalonSpa.domain.exception.NotFoundException;
+import com.danydandy.SalonSpa.domain.model.Role;
 import com.danydandy.SalonSpa.domain.model.User;
 import com.danydandy.SalonSpa.domain.ports.in.UserUseCase;
 import com.danydandy.SalonSpa.domain.ports.out.SalonRepositoryPort;
@@ -17,13 +19,15 @@ public class UserService implements UserUseCase {
     private final SalonRepositoryPort salonRepositoryPort;
 
     @Override
-    public Mono<PageResponse<User>> findPage(int page, int size) {
+    public Mono<PageResponse<User>> findPage(int page, int size, Boolean isActive, Role role, String search) {
+        String roleFilter = role != null ? role.name() : null;
+        String searchFilter = SearchHelper.toLikePattern(search);
         return SecurityHelper.currentUser()
                 .flatMap(authUser -> {
                     if (SecurityHelper.isSuperAdmin(authUser)) {
-                        return paginateAll(page, size);
+                        return paginateAll(page, size, isActive, roleFilter, searchFilter);
                     }
-                    return paginateBySalonId(authUser.getSalonId(), page, size);
+                    return paginateBySalonId(authUser.getSalonId(), page, size, isActive, roleFilter, searchFilter);
                 });
     }
 
@@ -70,19 +74,20 @@ public class UserService implements UserUseCase {
                 });
     }
 
-    private Mono<PageResponse<User>> paginateAll(int page, int size) {
+    private Mono<PageResponse<User>> paginateAll(int page, int size, Boolean isActive, String role, String search) {
         return Mono.zip(
-                userRepositoryPort.countAll(),
-                userRepositoryPort.findAll(page, size)
+                userRepositoryPort.countAll(isActive, role, search),
+                userRepositoryPort.findAll(page, size, isActive, role, search)
                         .flatMap(this::enrichWithSalon)
                         .collectList()
         ).map(tuple -> PageResponse.of(tuple.getT2(), page, size, tuple.getT1()));
     }
 
-    private Mono<PageResponse<User>> paginateBySalonId(Long salonId, int page, int size) {
+    private Mono<PageResponse<User>> paginateBySalonId(Long salonId, int page, int size, Boolean isActive,
+                                                         String role, String search) {
         return Mono.zip(
-                userRepositoryPort.countBySalonId(salonId),
-                userRepositoryPort.findBySalonId(salonId, page, size)
+                userRepositoryPort.countBySalonId(salonId, isActive, role, search),
+                userRepositoryPort.findBySalonId(salonId, page, size, isActive, role, search)
                         .flatMap(this::enrichWithSalon)
                         .collectList()
         ).map(tuple -> PageResponse.of(tuple.getT2(), page, size, tuple.getT1()));

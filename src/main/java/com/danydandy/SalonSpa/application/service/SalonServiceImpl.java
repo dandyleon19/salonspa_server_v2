@@ -75,7 +75,7 @@ public class SalonServiceImpl implements SalonUseCase {
     }
 
     private Mono<Salon> enrichWithBranches(Salon salon) {
-        return branchRepositoryPort.findBySalonId(salon.getId(), 0, 100)
+        return branchRepositoryPort.findBySalonId(salon.getId(), 0, 100, null)
                 .collectList()
                 .map(branches -> {
                     salon.setBranches(branches);

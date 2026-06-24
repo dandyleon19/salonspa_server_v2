@@ -2,6 +2,7 @@ package com.danydandy.SalonSpa.application.service;
 
 import com.danydandy.SalonSpa.application.dto.response.PageResponse;
 import com.danydandy.SalonSpa.application.security.SecurityHelper;
+import com.danydandy.SalonSpa.application.util.SearchHelper;
 import com.danydandy.SalonSpa.domain.exception.NotFoundException;
 import com.danydandy.SalonSpa.domain.model.ServiceCategory;
 import com.danydandy.SalonSpa.domain.ports.in.ServiceCategoryUseCase;
@@ -26,13 +27,14 @@ public class ServiceCategoryServiceImpl implements ServiceCategoryUseCase {
     }
 
     @Override
-    public Mono<PageResponse<ServiceCategory>> findPage(int page, int size) {
+    public Mono<PageResponse<ServiceCategory>> findPage(int page, int size, String search) {
+        String searchFilter = SearchHelper.toLikePattern(search);
         return SecurityHelper.currentUser()
                 .flatMap(authUser -> {
                     if (SecurityHelper.isSuperAdmin(authUser)) {
-                        return paginateAll(page, size);
+                        return paginateAll(page, size, searchFilter);
                     }
-                    return paginateBySalonId(authUser.getSalonId(), page, size);
+                    return paginateBySalonId(authUser.getSalonId(), page, size, searchFilter);
                 });
     }
 
@@ -77,19 +79,19 @@ public class ServiceCategoryServiceImpl implements ServiceCategoryUseCase {
                 });
     }
 
-    private Mono<PageResponse<ServiceCategory>> paginateAll(int page, int size) {
+    private Mono<PageResponse<ServiceCategory>> paginateAll(int page, int size, String search) {
         return Mono.zip(
-                serviceCategoryRepositoryPort.countAll(),
-                serviceCategoryRepositoryPort.findAll(page, size)
+                serviceCategoryRepositoryPort.countAll(search),
+                serviceCategoryRepositoryPort.findAll(page, size, search)
                         .flatMap(this::enrichWithServices)
                         .collectList()
         ).map(tuple -> PageResponse.of(tuple.getT2(), page, size, tuple.getT1()));
     }
 
-    private Mono<PageResponse<ServiceCategory>> paginateBySalonId(Long salonId, int page, int size) {
+    private Mono<PageResponse<ServiceCategory>> paginateBySalonId(Long salonId, int page, int size, String search) {
         return Mono.zip(
-                serviceCategoryRepositoryPort.countBySalonId(salonId),
-                serviceCategoryRepositoryPort.findBySalonId(salonId, page, size)
+                serviceCategoryRepositoryPort.countBySalonId(salonId, search),
+                serviceCategoryRepositoryPort.findBySalonId(salonId, page, size, search)
                         .flatMap(this::enrichWithServices)
                         .collectList()
         ).map(tuple -> PageResponse.of(tuple.getT2(), page, size, tuple.getT1()));

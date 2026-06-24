@@ -1,5 +1,6 @@
 package com.danydandy.SalonSpa.application.dto.request;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
@@ -36,4 +37,7 @@ public class CreateClinicalRecordRequest {
     private String observations;
 
     private LocalDateTime sessionDate;
+
+    @Valid
+    private NextAppointmentRequest nextAppointment;
 }

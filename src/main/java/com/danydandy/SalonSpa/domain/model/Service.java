@@ -16,6 +16,7 @@ public class Service {
     private String description;
     private String longDescription;
     private BigDecimal price;
+    private Integer durationMinutes;
     private Boolean isActive;
     private Long salonId;
     private Long categoryId;

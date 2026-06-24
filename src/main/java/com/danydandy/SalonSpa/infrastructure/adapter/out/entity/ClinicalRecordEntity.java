@@ -31,6 +31,8 @@ public class ClinicalRecordEntity {
     private Long userId;
     @Column("branch_id")
     private Long branchId;
+    @Column("follow_up_appointment_id")
+    private Long followUpAppointmentId;
 
     @Column("created_at")
     private LocalDateTime createdAt;

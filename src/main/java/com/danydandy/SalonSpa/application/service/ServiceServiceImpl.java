@@ -53,6 +53,7 @@ public class ServiceServiceImpl implements ServiceUseCase {
                             existing.setDescription(service.getDescription());
                             existing.setLongDescription(service.getLongDescription());
                             existing.setPrice(service.getPrice());
+                            existing.setDurationMinutes(service.getDurationMinutes());
                             existing.setIsActive(service.getIsActive());
                             return serviceRepositoryPort.save(existing);
                         }));

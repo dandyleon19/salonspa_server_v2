@@ -24,6 +24,8 @@ public class ServiceEntity {
     @Column("long_description")
     private String longDescription;
     private BigDecimal price;
+    @Column("duration_minutes")
+    private Integer durationMinutes;
     @Column("is_active")
     private Boolean isActive;
 

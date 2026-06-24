@@ -9,6 +9,7 @@ public record ServiceResponse(
         String description,
         String longDescription,
         BigDecimal price,
+        Integer durationMinutes,
         Boolean isActive,
         Long salonId,
         Long categoryId,

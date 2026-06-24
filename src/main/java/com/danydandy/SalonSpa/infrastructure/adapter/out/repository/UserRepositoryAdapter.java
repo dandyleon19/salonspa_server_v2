@@ -4,7 +4,6 @@ import com.danydandy.SalonSpa.domain.model.User;
 import com.danydandy.SalonSpa.domain.ports.out.UserRepositoryPort;
 import com.danydandy.SalonSpa.infrastructure.adapter.out.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -21,14 +20,15 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
-    public Flux<User> findAll(int page, int size) {
-        return userRepository.findAllByOrderByCreatedAtAsc(PageRequest.of(page, size))
+    public Flux<User> findAll(int page, int size, Boolean isActive, String role, String search) {
+        long offset = (long) page * size;
+        return userRepository.findPage(isActive, role, search, size, offset)
                 .map(userMapper::toDomain);
     }
 
     @Override
-    public Mono<Long> countAll() {
-        return userRepository.count();
+    public Mono<Long> countAll(Boolean isActive, String role, String search) {
+        return userRepository.countFiltered(isActive, role, search);
     }
 
     @Override
@@ -49,13 +49,14 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
-    public Flux<User> findBySalonId(Long salonId, int page, int size) {
-        return userRepository.findBySalonIdOrderByCreatedAtAsc(salonId, PageRequest.of(page, size))
+    public Flux<User> findBySalonId(Long salonId, int page, int size, Boolean isActive, String role, String search) {
+        long offset = (long) page * size;
+        return userRepository.findPageBySalonId(salonId, isActive, role, search, size, offset)
                 .map(userMapper::toDomain);
     }
 
     @Override
-    public Mono<Long> countBySalonId(Long salonId) {
-        return userRepository.countBySalonId(salonId);
+    public Mono<Long> countBySalonId(Long salonId, Boolean isActive, String role, String search) {
+        return userRepository.countBySalonId(salonId, isActive, role, search);
     }
 }

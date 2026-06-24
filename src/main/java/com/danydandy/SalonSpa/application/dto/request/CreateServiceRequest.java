@@ -30,5 +30,8 @@ public class CreateServiceRequest {
     @DecimalMin(value = "0.0", inclusive = true, message = "Price must be zero or greater")
     private BigDecimal price;
 
+    @Positive(message = "Duration minutes must be positive")
+    private Integer durationMinutes;
+
     private Boolean isActive;
 }

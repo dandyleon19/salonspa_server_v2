@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono;
 
 public interface ClientUseCase {
     Mono<Client> create(Client client);
-    Mono<PageResponse<Client>> findPage(int page, int size);
+    Mono<PageResponse<Client>> findPage(int page, int size, String search);
     Mono<Client> findById(Long id);
     Mono<PageResponse<ClinicalRecord>> findClinicalRecordsPage(Long clientId, int page, int size);
     Mono<Client> update(Long id, Client client);

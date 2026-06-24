@@ -60,8 +60,8 @@ public class BeanConfig {
     }
 
     @Bean
-    public ClientUseCase clientUseCase(ClientRepositoryPort clientRepositoryPort, ClinicalRecordRepositoryPort clinicalRecordRepositoryPort, UserRepositoryPort userRepositoryPort, BranchRepositoryPort branchRepositoryPort, ClinicalRecordServiceRepositoryPort clinicalRecordServiceRepositoryPort, ServiceRepositoryPort serviceRepositoryPort) {
-        return new ClientServiceImpl(clientRepositoryPort, clinicalRecordRepositoryPort, userRepositoryPort, branchRepositoryPort, clinicalRecordServiceRepositoryPort, serviceRepositoryPort);
+    public ClientUseCase clientUseCase(ClientRepositoryPort clientRepositoryPort, ClinicalRecordRepositoryPort clinicalRecordRepositoryPort, UserRepositoryPort userRepositoryPort, BranchRepositoryPort branchRepositoryPort, ClinicalRecordServiceRepositoryPort clinicalRecordServiceRepositoryPort, ServiceRepositoryPort serviceRepositoryPort, AppointmentUseCase appointmentUseCase) {
+        return new ClientServiceImpl(clientRepositoryPort, clinicalRecordRepositoryPort, userRepositoryPort, branchRepositoryPort, clinicalRecordServiceRepositoryPort, serviceRepositoryPort, appointmentUseCase);
     }
 
     @Bean
@@ -73,9 +73,21 @@ public class BeanConfig {
     public ClinicalRecordUseCase clinicalRecordUseCase(
             ClinicalRecordRepositoryPort clinicalRecordRepositoryPort,
             ClinicalRecordServiceRepositoryPort clinicalRecordServiceRepositoryPort,
-            ClientRepositoryPort clientRepositoryPort
+            ClientRepositoryPort clientRepositoryPort,
+            AppointmentUseCase appointmentUseCase,
+            UserRepositoryPort userRepositoryPort,
+            BranchRepositoryPort branchRepositoryPort,
+            ServiceRepositoryPort serviceRepositoryPort
     ) {
-        return new ClinicalRecordServiceImpl(clinicalRecordRepositoryPort, clinicalRecordServiceRepositoryPort, clientRepositoryPort);
+        return new ClinicalRecordServiceImpl(
+                clinicalRecordRepositoryPort,
+                clinicalRecordServiceRepositoryPort,
+                clientRepositoryPort,
+                appointmentUseCase,
+                userRepositoryPort,
+                branchRepositoryPort,
+                serviceRepositoryPort
+        );
     }
 
     @Bean
@@ -106,5 +118,45 @@ public class BeanConfig {
     @Bean
     public ClinicalRecordServiceRepositoryPort clinicalRecordServiceRepositoryPort(ClinicalRecordServiceRepository repository, ClinicalRecordServiceMapper clinicalRecordServiceMapper) {
         return new ClinicalRecordServiceRepositoryAdapter(repository, clinicalRecordServiceMapper);
+    }
+
+    @Bean
+    public AppointmentUseCase appointmentUseCase(
+            AppointmentRepositoryPort appointmentRepositoryPort,
+            ClientRepositoryPort clientRepositoryPort,
+            UserRepositoryPort userRepositoryPort,
+            BranchRepositoryPort branchRepositoryPort,
+            ServiceRepositoryPort serviceRepositoryPort,
+            AppointmentEnricher appointmentEnricher
+    ) {
+        return new AppointmentServiceImpl(
+                appointmentRepositoryPort,
+                clientRepositoryPort,
+                userRepositoryPort,
+                branchRepositoryPort,
+                serviceRepositoryPort,
+                appointmentEnricher
+        );
+    }
+
+    @Bean
+    public DashboardUseCase dashboardUseCase(
+            DashboardRepositoryPort dashboardRepositoryPort,
+            AppointmentRepositoryPort appointmentRepositoryPort,
+            AppointmentEnricher appointmentEnricher,
+            AppointmentMapper appointmentMapper
+    ) {
+        return new DashboardServiceImpl(dashboardRepositoryPort, appointmentRepositoryPort, appointmentEnricher,
+                appointmentMapper);
+    }
+
+    @Bean
+    public DashboardRepositoryPort dashboardRepositoryPort(DashboardRepository dashboardRepository) {
+        return new DashboardRepositoryAdapter(dashboardRepository);
+    }
+
+    @Bean
+    public AppointmentRepositoryPort appointmentRepositoryPort(AppointmentRepository repository, AppointmentMapper appointmentMapper) {
+        return new AppointmentRepositoryAdapter(repository, appointmentMapper);
     }
 }

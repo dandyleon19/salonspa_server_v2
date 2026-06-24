@@ -63,7 +63,7 @@ class AuthServiceImplTest {
                 .isActive(true)
                 .build();
 
-        when(userRepositoryPort.countAll()).thenReturn(Mono.just(0L));
+        when(userRepositoryPort.countAll(null, null, null)).thenReturn(Mono.just(0L));
         when(salonRepositoryPort.save(salon)).thenReturn(Mono.just(savedSalon));
         when(passwordEncoder.encode("password123")).thenReturn("hashed");
         when(userRepositoryPort.save(any(User.class))).thenReturn(Mono.just(savedAdmin));
@@ -83,7 +83,7 @@ class AuthServiceImplTest {
 
     @Test
     void shouldRejectBootstrapWhenUsersAlreadyExist() {
-        when(userRepositoryPort.countAll()).thenReturn(Mono.just(1L));
+        when(userRepositoryPort.countAll(null, null, null)).thenReturn(Mono.just(1L));
 
         StepVerifier.create(authService.bootstrap(
                         User.builder().email("admin@spa.com").password("password123").build(),

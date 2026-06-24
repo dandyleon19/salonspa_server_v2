@@ -96,6 +96,7 @@ public class RequestDtoMapper {
                 .description(request.getDescription())
                 .longDescription(request.getLongDescription())
                 .price(request.getPrice())
+                .durationMinutes(request.getDurationMinutes())
                 .isActive(request.getIsActive())
                 .build();
     }
@@ -106,6 +107,7 @@ public class RequestDtoMapper {
                 .description(request.getDescription())
                 .longDescription(request.getLongDescription())
                 .price(request.getPrice())
+                .durationMinutes(request.getDurationMinutes())
                 .isActive(request.getIsActive())
                 .build();
     }
@@ -127,7 +129,7 @@ public class RequestDtoMapper {
     }
 
     public ClinicalRecord toClinicalRecord(CreateClinicalRecordRequest request) {
-        return ClinicalRecord.builder()
+        ClinicalRecord clinicalRecord = ClinicalRecord.builder()
                 .clientId(request.getClientId())
                 .userId(request.getUserId())
                 .branchId(request.getBranchId())
@@ -137,14 +139,57 @@ public class RequestDtoMapper {
                 .observations(request.getObservations())
                 .sessionDate(request.getSessionDate())
                 .build();
+        if (request.getNextAppointment() != null) {
+            clinicalRecord.setNextAppointment(toAppointmentFromNext(
+                    request.getNextAppointment(), request.getClientId(), request.getServiceId()));
+        }
+        return clinicalRecord;
     }
 
     public ClinicalRecord toClinicalRecord(UpdateClinicalRecordRequest request) {
-        return ClinicalRecord.builder()
+        ClinicalRecord clinicalRecord = ClinicalRecord.builder()
                 .diagnosis(request.getDiagnosis())
                 .treatment(request.getTreatment())
                 .observations(request.getObservations())
                 .sessionDate(request.getSessionDate())
+                .build();
+        if (request.getNextAppointment() != null) {
+            clinicalRecord.setNextAppointment(toAppointmentFromNext(request.getNextAppointment(), null, null));
+        }
+        return clinicalRecord;
+    }
+
+    public Appointment toAppointment(CreateAppointmentRequest request) {
+        return Appointment.builder()
+                .clientId(request.getClientId())
+                .userId(request.getUserId())
+                .branchId(request.getBranchId())
+                .serviceId(request.getServiceId())
+                .startAt(request.getStartAt())
+                .notes(request.getNotes())
+                .build();
+    }
+
+    public Appointment toAppointment(UpdateAppointmentRequest request) {
+        return Appointment.builder()
+                .userId(request.getUserId())
+                .branchId(request.getBranchId())
+                .serviceId(request.getServiceId())
+                .startAt(request.getStartAt())
+                .status(request.getStatus())
+                .notes(request.getNotes())
+                .cancellationReason(request.getCancellationReason())
+                .build();
+    }
+
+    private Appointment toAppointmentFromNext(NextAppointmentRequest request, Long clientId, Long fallbackServiceId) {
+        return Appointment.builder()
+                .clientId(clientId)
+                .userId(request.getUserId())
+                .branchId(request.getBranchId())
+                .startAt(request.getStartAt())
+                .serviceId(request.getServiceId() != null ? request.getServiceId() : fallbackServiceId)
+                .notes(request.getNotes())
                 .build();
     }
 }

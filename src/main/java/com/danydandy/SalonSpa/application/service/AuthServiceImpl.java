@@ -57,7 +57,7 @@ public class AuthServiceImpl implements AuthUseCase {
 
     @Override
     public Mono<AuthResponse> bootstrap(User admin, Salon salon) {
-        return userRepositoryPort.countAll()
+        return userRepositoryPort.countAll(null, null, null)
                 .flatMap(userCount -> {
                     if (userCount > 0) {
                         return Mono.error(new ConflictException("System already initialized"));

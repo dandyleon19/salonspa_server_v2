@@ -6,7 +6,7 @@ import reactor.core.publisher.Mono;
 
 public interface ServiceCategoryUseCase {
     Mono<ServiceCategory> create(ServiceCategory serviceCategory);
-    Mono<PageResponse<ServiceCategory>> findPage(int page, int size);
+    Mono<PageResponse<ServiceCategory>> findPage(int page, int size, String search);
     Mono<ServiceCategory> findById(Long id);
     Mono<ServiceCategory> update(Long id, ServiceCategory serviceCategory);
     Mono<Void> delete(Long id);

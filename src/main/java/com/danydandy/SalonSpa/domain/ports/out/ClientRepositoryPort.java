@@ -6,10 +6,10 @@ import reactor.core.publisher.Mono;
 
 public interface ClientRepositoryPort {
     Mono<Client> save(Client client);
-    Flux<Client> findAll(int page, int size);
-    Mono<Long> countAll();
+    Flux<Client> findAll(int page, int size, String search);
+    Mono<Long> countAll(String search);
     Mono<Client> findById(Long id);
     Mono<Void> deleteById(Long id);
-    Flux<Client> findBySalonId(Long salonId, int page, int size);
-    Mono<Long> countBySalonId(Long salonId);
+    Flux<Client> findBySalonId(Long salonId, int page, int size, String search);
+    Mono<Long> countBySalonId(Long salonId, String search);
 }

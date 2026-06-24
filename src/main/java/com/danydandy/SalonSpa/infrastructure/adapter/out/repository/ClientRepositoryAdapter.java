@@ -4,7 +4,6 @@ import com.danydandy.SalonSpa.domain.model.Client;
 import com.danydandy.SalonSpa.domain.ports.out.ClientRepositoryPort;
 import com.danydandy.SalonSpa.infrastructure.adapter.out.mapper.ClientMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -21,14 +20,15 @@ public class ClientRepositoryAdapter implements ClientRepositoryPort {
     }
 
     @Override
-    public Flux<Client> findAll(int page, int size) {
-        return clientRepository.findAllByOrderByCreatedAtAsc(PageRequest.of(page, size))
+    public Flux<Client> findAll(int page, int size, String search) {
+        long offset = (long) page * size;
+        return clientRepository.findPage(search, size, offset)
                 .map(clientMapper::toDomain);
     }
 
     @Override
-    public Mono<Long> countAll() {
-        return clientRepository.count();
+    public Mono<Long> countAll(String search) {
+        return clientRepository.countFiltered(search);
     }
 
     @Override
@@ -43,13 +43,14 @@ public class ClientRepositoryAdapter implements ClientRepositoryPort {
     }
 
     @Override
-    public Flux<Client> findBySalonId(Long salonId, int page, int size) {
-        return clientRepository.findBySalonIdOrderByCreatedAtAsc(salonId, PageRequest.of(page, size))
+    public Flux<Client> findBySalonId(Long salonId, int page, int size, String search) {
+        long offset = (long) page * size;
+        return clientRepository.findPageBySalonId(salonId, search, size, offset)
                 .map(clientMapper::toDomain);
     }
 
     @Override
-    public Mono<Long> countBySalonId(Long salonId) {
-        return clientRepository.countBySalonId(salonId);
+    public Mono<Long> countBySalonId(Long salonId, String search) {
+        return clientRepository.countBySalonId(salonId, search);
     }
 }

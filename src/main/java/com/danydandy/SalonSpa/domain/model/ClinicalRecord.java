@@ -20,6 +20,8 @@ public class ClinicalRecord {
     private Long userId;
     private Long serviceId;
     private Long branchId;
+    private Long followUpAppointmentId;
+    private Appointment nextAppointment;
     private String userName;
     private String branchName;
     private List<String> associatedServices;

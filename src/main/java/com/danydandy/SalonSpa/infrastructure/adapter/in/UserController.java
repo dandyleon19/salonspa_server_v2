@@ -4,12 +4,14 @@ import com.danydandy.SalonSpa.application.dto.request.UpdateUserRequest;
 import com.danydandy.SalonSpa.application.dto.response.PageResponse;
 import com.danydandy.SalonSpa.application.dto.response.UserResponse;
 import com.danydandy.SalonSpa.application.mapper.RequestDtoMapper;
+import com.danydandy.SalonSpa.domain.model.Role;
 import com.danydandy.SalonSpa.domain.ports.in.UserUseCase;
 import com.danydandy.SalonSpa.infrastructure.adapter.out.mapper.UserMapper;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -29,9 +31,12 @@ public class UserController {
     @GetMapping
     public Mono<ResponseEntity<PageResponse<UserResponse>>> getAll(
             @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "20") @Positive @Max(100) int size
+            @RequestParam(defaultValue = "20") @Positive @Max(100) int size,
+            @RequestParam(required = false) Boolean isActive,
+            @RequestParam(required = false) Role role,
+            @RequestParam(required = false) @Size(max = 255) String search
     ) {
-        return userUseCase.findPage(page, size)
+        return userUseCase.findPage(page, size, isActive, role, search)
                 .map(pageResponse -> PageResponse.of(
                         pageResponse.content().stream().map(userMapper::toResponse).toList(),
                         pageResponse.page(),

@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono;
 
 public interface BranchUseCase {
     Mono<Branch> create(Branch branch);
-    Mono<PageResponse<Branch>> findPage(int page, int size);
+    Mono<PageResponse<Branch>> findPage(int page, int size, String search);
     Mono<Branch> findById(Long id);
     Mono<Branch> update(Long id, Branch branch);
     Mono<Void> delete(Long id);
