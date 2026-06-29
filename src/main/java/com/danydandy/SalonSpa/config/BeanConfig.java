@@ -5,6 +5,7 @@ import com.danydandy.SalonSpa.domain.ports.in.*;
 import com.danydandy.SalonSpa.domain.ports.out.*;
 import com.danydandy.SalonSpa.infrastructure.adapter.out.mapper.*;
 import com.danydandy.SalonSpa.infrastructure.adapter.out.repository.*;
+import com.danydandy.SalonSpa.config.properties.JwtProperties;
 import com.danydandy.SalonSpa.infrastructure.security.JwtService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,10 +24,19 @@ public class BeanConfig {
     public AuthUseCase authUseCase(
             UserRepositoryPort userRepositoryPort,
             SalonRepositoryPort salonRepositoryPort,
+            RefreshTokenRepositoryPort refreshTokenRepositoryPort,
             PasswordEncoder passwordEncoder,
-            JwtService jwtService
+            JwtService jwtService,
+            JwtProperties jwtProperties
     ) {
-        return new AuthServiceImpl(userRepositoryPort, salonRepositoryPort, passwordEncoder, jwtService);
+        return new AuthServiceImpl(
+                userRepositoryPort,
+                salonRepositoryPort,
+                refreshTokenRepositoryPort,
+                passwordEncoder,
+                jwtService,
+                jwtProperties
+        );
     }
 
     @Bean
@@ -47,6 +57,14 @@ public class BeanConfig {
     @Bean
     public UserRepositoryPort userRepositoryPort(UserRepository repository, UserMapper userMapper) {
         return new UserRepositoryAdapter(repository, userMapper);
+    }
+
+    @Bean
+    public RefreshTokenRepositoryPort refreshTokenRepositoryPort(
+            RefreshTokenRepository repository,
+            RefreshTokenMapper refreshTokenMapper
+    ) {
+        return new RefreshTokenRepositoryAdapter(repository, refreshTokenMapper);
     }
 
     @Bean
@@ -98,6 +116,15 @@ public class BeanConfig {
     @Bean
     public ServiceCategoryUseCase serviceCategoryUseCase(ServiceCategoryRepositoryPort serviceCategoryRepositoryPort, ServiceRepositoryPort serviceRepositoryPort) {
         return new ServiceCategoryServiceImpl(serviceCategoryRepositoryPort, serviceRepositoryPort);
+    }
+
+    @Bean
+    public PublicCatalogUseCase publicCatalogUseCase(
+            SalonRepositoryPort salonRepositoryPort,
+            ServiceCategoryRepositoryPort serviceCategoryRepositoryPort,
+            ServiceRepositoryPort serviceRepositoryPort
+    ) {
+        return new PublicCatalogServiceImpl(salonRepositoryPort, serviceCategoryRepositoryPort, serviceRepositoryPort);
     }
 
     @Bean

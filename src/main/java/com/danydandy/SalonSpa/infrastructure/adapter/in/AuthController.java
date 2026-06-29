@@ -3,6 +3,7 @@ package com.danydandy.SalonSpa.infrastructure.adapter.in;
 import com.danydandy.SalonSpa.application.dto.request.BootstrapRequest;
 import com.danydandy.SalonSpa.application.dto.request.CreateUserRequest;
 import com.danydandy.SalonSpa.application.dto.request.LoginRequest;
+import com.danydandy.SalonSpa.application.dto.request.RefreshTokenRequest;
 import com.danydandy.SalonSpa.application.dto.response.AuthResponse;
 import com.danydandy.SalonSpa.application.dto.response.UserResponse;
 import com.danydandy.SalonSpa.application.mapper.RequestDtoMapper;
@@ -47,5 +48,17 @@ public class AuthController {
                         requestDtoMapper.toSalon(request.getSalon())
                 )
                 .map(response -> ResponseEntity.status(HttpStatus.CREATED).body(response));
+    }
+
+    @PostMapping("/refresh")
+    public Mono<ResponseEntity<AuthResponse>> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        return authUseCase.refresh(request.getRefreshToken())
+                .map(ResponseEntity::ok);
+    }
+
+    @PostMapping("/logout")
+    public Mono<ResponseEntity<Void>> logout(@Valid @RequestBody RefreshTokenRequest request) {
+        return authUseCase.logout(request.getRefreshToken())
+                .thenReturn(ResponseEntity.noContent().build());
     }
 }

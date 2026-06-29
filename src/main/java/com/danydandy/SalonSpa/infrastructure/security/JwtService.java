@@ -51,12 +51,16 @@ public class JwtService implements JwtUseCase {
     }
 
     public Long extractSalonId(String token) {
-        return ((Number) Jwts.parserBuilder()
+        Object salonId = Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
-                .get("salonId")).longValue();
+                .get("salonId");
+        if (salonId == null) {
+            return null;
+        }
+        return ((Number) salonId).longValue();
     }
 
     public String extractRole(String token) {

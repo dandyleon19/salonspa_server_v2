@@ -67,6 +67,9 @@ public class UserService implements UserUseCase {
     }
 
     private Mono<User> enrichWithSalon(User user) {
+        if (user.getSalonId() == null) {
+            return Mono.just(user);
+        }
         return salonRepositoryPort.findById(user.getSalonId())
                 .map(salon -> {
                     user.setSalon(salon);

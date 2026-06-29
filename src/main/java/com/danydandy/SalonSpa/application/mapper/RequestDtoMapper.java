@@ -14,6 +14,7 @@ public class RequestDtoMapper {
                 .email(request.getEmail())
                 .password(request.getPassword())
                 .role(request.getRole())
+                .salonId(request.getSalonId())
                 .commissionPercentage(request.getCommissionPercentage())
                 .build();
     }

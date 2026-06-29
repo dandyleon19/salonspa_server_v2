@@ -32,6 +32,9 @@ public class CreateUserRequest {
 
     private Role role;
 
+    @Positive(message = "Salon id must be positive")
+    private Long salonId;
+
     @DecimalMin(value = "0.0", message = "Commission percentage must be at least 0")
     @DecimalMax(value = "100.0", message = "Commission percentage must be at most 100")
     private Double commissionPercentage;

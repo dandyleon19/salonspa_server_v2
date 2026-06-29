@@ -9,4 +9,6 @@ public interface AuthUseCase {
     Mono<User> register(User user);
     Mono<AuthResponse> login(String email, String password);
     Mono<AuthResponse> bootstrap(User admin, Salon salon);
+    Mono<AuthResponse> refresh(String refreshToken);
+    Mono<Void> logout(String refreshToken);
 }
