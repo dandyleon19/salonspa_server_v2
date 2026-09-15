@@ -1,5 +1,6 @@
 package com.danydandy.SalonSpa.application.dto.request;
 
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,4 +21,7 @@ public class CreateBranchRequest {
 
     @Size(max = 100, message = "City must be at most 100 characters")
     private String city;
+
+    @Positive(message = "Salon id must be positive")
+    private Long salonId;
 }

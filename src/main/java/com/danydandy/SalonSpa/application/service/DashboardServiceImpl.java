@@ -40,8 +40,9 @@ public class DashboardServiceImpl implements DashboardUseCase {
         return SecurityHelper.currentUser()
                 .flatMap(authUser -> {
                     Long salonId = SecurityHelper.isSuperAdmin(authUser) ? null : authUser.getSalonId();
+                    Long effectiveUserId = SecurityHelper.resolveReportUserId(authUser, userId);
                     return buildSummary(salonId, targetDate, yearMonth, monthStart, monthEnd, upcomingFrom, branchId,
-                            userId);
+                            effectiveUserId);
                 });
     }
 

@@ -52,4 +52,29 @@ class SecurityHelperTest {
                         .contextWrite(ReactiveSecurityContextHolder.withSecurityContext(Mono.just(context)))
         ).expectNext(user).verifyComplete();
     }
+
+    @Test
+    void shouldForceStaffReportUserIdToSelf() {
+        AuthUser staff = new AuthUser(7L, 10L, Role.STAFF_USER.name());
+        assert SecurityHelper.resolveReportUserId(staff, null).equals(7L);
+        assert SecurityHelper.resolveReportUserId(staff, 7L).equals(7L);
+    }
+
+    @Test
+    void shouldDenyStaffAccessToOtherUserReports() {
+        AuthUser staff = new AuthUser(7L, 10L, Role.STAFF_USER.name());
+        try {
+            SecurityHelper.resolveReportUserId(staff, 99L);
+            throw new AssertionError("Expected ForbiddenException");
+        } catch (com.danydandy.SalonSpa.domain.exception.ForbiddenException ex) {
+            assert ex.getMessage().equals("Staff users can only view their own reports");
+        }
+    }
+
+    @Test
+    void shouldAllowAdminToFilterReportsByUser() {
+        AuthUser admin = new AuthUser(1L, 10L, Role.ADMIN_USER.name());
+        assert SecurityHelper.resolveReportUserId(admin, 99L).equals(99L);
+        assert SecurityHelper.resolveReportUserId(admin, null) == null;
+    }
 }

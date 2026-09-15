@@ -1,5 +1,6 @@
 package com.danydandy.SalonSpa.application.security;
 
+import com.danydandy.SalonSpa.domain.exception.ForbiddenException;
 import com.danydandy.SalonSpa.domain.exception.NotFoundException;
 import com.danydandy.SalonSpa.domain.model.AuthUser;
 import com.danydandy.SalonSpa.domain.model.Role;
@@ -18,6 +19,20 @@ public final class SecurityHelper {
 
     public static boolean isSuperAdmin(AuthUser authUser) {
         return Role.SUPER_ADMIN.name().equals(authUser.getRole());
+    }
+
+    public static boolean isStaffUser(AuthUser authUser) {
+        return Role.STAFF_USER.name().equals(authUser.getRole());
+    }
+
+    public static Long resolveReportUserId(AuthUser authUser, Long requestedUserId) {
+        if (isStaffUser(authUser)) {
+            if (requestedUserId != null && !requestedUserId.equals(authUser.getUserId())) {
+                throw new ForbiddenException("Staff users can only view their own reports");
+            }
+            return authUser.getUserId();
+        }
+        return requestedUserId;
     }
 
     public static <T> Mono<T> requireSameSalon(T entity, Long entitySalonId, AuthUser authUser, String resource, Object id) {

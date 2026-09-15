@@ -79,6 +79,7 @@ public class RequestDtoMapper {
                 .name(request.getName())
                 .address(request.getAddress())
                 .city(request.getCity())
+                .salonId(request.getSalonId())
                 .build();
     }
 
@@ -191,6 +192,46 @@ public class RequestDtoMapper {
                 .startAt(request.getStartAt())
                 .serviceId(request.getServiceId() != null ? request.getServiceId() : fallbackServiceId)
                 .notes(request.getNotes())
+                .build();
+    }
+
+    public Sale toSale(CreateSaleRequest request) {
+        return Sale.builder()
+                .clientId(request.getClientId())
+                .branchId(request.getBranchId())
+                .appointmentId(request.getAppointmentId())
+                .discountAmount(request.getDiscountAmount())
+                .notes(request.getNotes())
+                .soldAt(request.getSoldAt())
+                .build();
+    }
+
+    public SaleItem toSaleItem(CreateSaleItemRequest request) {
+        return SaleItem.builder()
+                .serviceId(request.getServiceId())
+                .userId(request.getUserId())
+                .appointmentId(request.getAppointmentId())
+                .quantity(request.getQuantity())
+                .unitPrice(request.getUnitPrice())
+                .discountAmount(request.getDiscountAmount())
+                .build();
+    }
+
+    public SalePayment toSalePayment(CreateSalePaymentRequest request) {
+        return SalePayment.builder()
+                .amount(request.getAmount())
+                .paymentMethod(request.getPaymentMethod())
+                .reference(request.getReference())
+                .paidAt(request.getPaidAt())
+                .build();
+    }
+
+    public SalePayment toSalePayment(AddSalePaymentRequest request) {
+        return SalePayment.builder()
+                .amount(request.getAmount())
+                .paymentMethod(request.getPaymentMethod())
+                .reference(request.getReference())
+                .paidAt(request.getPaidAt())
                 .build();
     }
 }

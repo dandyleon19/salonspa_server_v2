@@ -59,6 +59,8 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.POST, "/api/appointments/**").hasAnyRole("ADMIN_USER", "SUPER_ADMIN")
                         .pathMatchers(HttpMethod.PUT, "/api/appointments/**").hasAnyRole("ADMIN_USER", "SUPER_ADMIN")
                         .pathMatchers(HttpMethod.DELETE, "/api/appointments/**").hasAnyRole("ADMIN_USER", "SUPER_ADMIN")
+                        .pathMatchers(HttpMethod.POST, "/api/sales/**").hasAnyRole("ADMIN_USER", "SUPER_ADMIN")
+                        .pathMatchers(HttpMethod.PUT, "/api/sales/**").hasAnyRole("ADMIN_USER", "SUPER_ADMIN")
                         .pathMatchers("/api/**").authenticated()
                         .anyExchange().authenticated()
                 )

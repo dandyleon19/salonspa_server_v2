@@ -186,4 +186,106 @@ public class BeanConfig {
     public AppointmentRepositoryPort appointmentRepositoryPort(AppointmentRepository repository, AppointmentMapper appointmentMapper) {
         return new AppointmentRepositoryAdapter(repository, appointmentMapper);
     }
+
+    @Bean
+    public SaleEnricher saleEnricher(
+            ClientRepositoryPort clientRepositoryPort,
+            BranchRepositoryPort branchRepositoryPort,
+            UserRepositoryPort userRepositoryPort,
+            SaleItemRepositoryPort saleItemRepositoryPort,
+            SalePaymentRepositoryPort salePaymentRepositoryPort
+    ) {
+        return new SaleEnricher(
+                clientRepositoryPort,
+                branchRepositoryPort,
+                userRepositoryPort,
+                saleItemRepositoryPort,
+                salePaymentRepositoryPort
+        );
+    }
+
+    @Bean
+    public SaleUseCase saleUseCase(
+            SaleRepositoryPort saleRepositoryPort,
+            SaleItemRepositoryPort saleItemRepositoryPort,
+            SalePaymentRepositoryPort salePaymentRepositoryPort,
+            SaleReportRepositoryPort saleReportRepositoryPort,
+            ClientRepositoryPort clientRepositoryPort,
+            BranchRepositoryPort branchRepositoryPort,
+            UserRepositoryPort userRepositoryPort,
+            ServiceRepositoryPort serviceRepositoryPort,
+            AppointmentRepositoryPort appointmentRepositoryPort,
+            SaleEnricher saleEnricher
+    ) {
+        return new SaleServiceImpl(
+                saleRepositoryPort,
+                saleItemRepositoryPort,
+                salePaymentRepositoryPort,
+                saleReportRepositoryPort,
+                clientRepositoryPort,
+                branchRepositoryPort,
+                userRepositoryPort,
+                serviceRepositoryPort,
+                appointmentRepositoryPort,
+                saleEnricher
+        );
+    }
+
+    @Bean
+    public SaleRepositoryPort saleRepositoryPort(SaleRepository repository, SaleMapper saleMapper) {
+        return new SaleRepositoryAdapter(repository, saleMapper);
+    }
+
+    @Bean
+    public SaleItemRepositoryPort saleItemRepositoryPort(SaleItemRepository repository, SaleItemMapper saleItemMapper) {
+        return new SaleItemRepositoryAdapter(repository, saleItemMapper);
+    }
+
+    @Bean
+    public SalePaymentRepositoryPort salePaymentRepositoryPort(
+            SalePaymentRepository repository,
+            SalePaymentMapper salePaymentMapper
+    ) {
+        return new SalePaymentRepositoryAdapter(repository, salePaymentMapper);
+    }
+
+    @Bean
+    public SaleReportRepositoryPort saleReportRepositoryPort(SaleReportRepository saleReportRepository) {
+        return new SaleReportRepositoryAdapter(saleReportRepository);
+    }
+
+    @Bean
+    public UserServiceCommissionUseCase userServiceCommissionUseCase(
+            UserServiceCommissionRepositoryPort userServiceCommissionRepositoryPort,
+            UserRepositoryPort userRepositoryPort,
+            ServiceRepositoryPort serviceRepositoryPort
+    ) {
+        return new UserServiceCommissionServiceImpl(
+                userServiceCommissionRepositoryPort,
+                userRepositoryPort,
+                serviceRepositoryPort
+        );
+    }
+
+    @Bean
+    public UserServiceCommissionRepositoryPort userServiceCommissionRepositoryPort(
+            UserServiceCommissionRepository repository,
+            UserServiceCommissionMapper userServiceCommissionMapper
+    ) {
+        return new UserServiceCommissionRepositoryAdapter(repository, userServiceCommissionMapper);
+    }
+
+    @Bean
+    public CommissionReportUseCase commissionReportUseCase(
+            CommissionReportRepositoryPort commissionReportRepositoryPort
+    ) {
+        return new CommissionReportServiceImpl(commissionReportRepositoryPort);
+    }
+
+    @Bean
+    public CommissionReportRepositoryPort commissionReportRepositoryPort(
+            CommissionReportRepository commissionReportRepository
+    ) {
+        return new CommissionReportRepositoryAdapter(commissionReportRepository);
+    }
 }

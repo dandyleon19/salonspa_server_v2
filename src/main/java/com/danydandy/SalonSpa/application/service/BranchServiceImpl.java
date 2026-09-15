@@ -3,7 +3,9 @@ package com.danydandy.SalonSpa.application.service;
 import com.danydandy.SalonSpa.application.dto.response.PageResponse;
 import com.danydandy.SalonSpa.application.security.SecurityHelper;
 import com.danydandy.SalonSpa.application.util.SearchHelper;
+import com.danydandy.SalonSpa.domain.exception.BadRequestException;
 import com.danydandy.SalonSpa.domain.exception.NotFoundException;
+import com.danydandy.SalonSpa.domain.model.AuthUser;
 import com.danydandy.SalonSpa.domain.model.Branch;
 import com.danydandy.SalonSpa.domain.ports.in.BranchUseCase;
 import com.danydandy.SalonSpa.domain.ports.out.BranchRepositoryPort;
@@ -21,10 +23,21 @@ public class BranchServiceImpl implements BranchUseCase {
     @Override
     public Mono<Branch> create(Branch branch) {
         return SecurityHelper.currentUser()
-                .flatMap(authUser -> {
-                    branch.setSalonId(authUser.getSalonId());
-                    return branchRepositoryPort.save(branch);
-                });
+                .flatMap(authUser -> resolveSalonId(branch, authUser))
+                .flatMap(branchRepositoryPort::save);
+    }
+
+    private Mono<Branch> resolveSalonId(Branch branch, AuthUser authUser) {
+        if (SecurityHelper.isSuperAdmin(authUser)) {
+            if (branch.getSalonId() == null) {
+                return Mono.error(new BadRequestException("Salon id is required when creating branches as SUPER_ADMIN"));
+            }
+            return salonRepositoryPort.findById(branch.getSalonId())
+                    .switchIfEmpty(Mono.error(NotFoundException.forResource("Salon", branch.getSalonId())))
+                    .thenReturn(branch);
+        }
+        branch.setSalonId(authUser.getSalonId());
+        return Mono.just(branch);
     }
 
     @Override
