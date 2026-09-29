@@ -3,6 +3,7 @@ package com.danydandy.SalonSpa.application.service;
 import com.danydandy.SalonSpa.application.dto.response.PageResponse;
 import com.danydandy.SalonSpa.application.security.SecurityHelper;
 import com.danydandy.SalonSpa.application.util.SearchHelper;
+import com.danydandy.SalonSpa.domain.exception.ForbiddenException;
 import com.danydandy.SalonSpa.domain.exception.NotFoundException;
 import com.danydandy.SalonSpa.domain.model.*;
 import com.danydandy.SalonSpa.domain.ports.in.AppointmentUseCase;
@@ -39,7 +40,7 @@ public class ClientServiceImpl implements ClientUseCase {
         return SecurityHelper.currentUser()
                 .flatMap(authUser -> {
                     if (SecurityHelper.isSuperAdmin(authUser)) {
-                        return paginateAll(page, size, searchFilter);
+                        return Mono.error(new ForbiddenException("Super admins do not manage clients"));
                     }
                     return paginateBySalonId(authUser.getSalonId(), page, size, searchFilter);
                 });
@@ -48,23 +49,33 @@ public class ClientServiceImpl implements ClientUseCase {
     @Override
     public Mono<Client> findById(Long id) {
         return SecurityHelper.currentUser()
-                .flatMap(authUser -> clientRepositoryPort.findById(id)
-                        .switchIfEmpty(Mono.error(NotFoundException.forResource("Client", id)))
-                        .flatMap(client -> SecurityHelper.requireSameSalon(client, client.getSalonId(), authUser, "Client", id)));
+                .flatMap(authUser -> {
+                    if (SecurityHelper.isSuperAdmin(authUser)) {
+                        return Mono.<Client>error(new ForbiddenException("Super admins do not manage clients"));
+                    }
+                    return clientRepositoryPort.findById(id)
+                            .switchIfEmpty(Mono.error(NotFoundException.forResource("Client", id)))
+                            .flatMap(client -> SecurityHelper.requireSameSalon(client, client.getSalonId(), authUser, "Client", id));
+                });
     }
 
     @Override
     public Mono<PageResponse<ClinicalRecord>> findClinicalRecordsPage(Long clientId, int page, int size) {
         return SecurityHelper.currentUser()
-                .flatMap(authUser -> clientRepositoryPort.findById(clientId)
-                        .switchIfEmpty(Mono.error(NotFoundException.forResource("Client", clientId)))
-                        .flatMap(client -> SecurityHelper.requireSameSalon(client, client.getSalonId(), authUser, "Client", clientId))
-                        .flatMap(client -> Mono.zip(
-                                clinicalRecordRepositoryPort.countByClientId(client.getId()),
-                                clinicalRecordRepositoryPort.findByClientId(client.getId(), page, size)
-                                        .flatMap(this::enrichClinicalRecord)
-                                        .collectList()
-                        ).map(tuple -> PageResponse.of(tuple.getT2(), page, size, tuple.getT1()))));
+                .flatMap(authUser -> {
+                    if (SecurityHelper.isSuperAdmin(authUser)) {
+                        return Mono.<PageResponse<ClinicalRecord>>error(new ForbiddenException("Super admins do not manage clients"));
+                    }
+                    return clientRepositoryPort.findById(clientId)
+                            .switchIfEmpty(Mono.error(NotFoundException.forResource("Client", clientId)))
+                            .flatMap(client -> SecurityHelper.requireSameSalon(client, client.getSalonId(), authUser, "Client", clientId))
+                            .flatMap(client -> Mono.zip(
+                                    clinicalRecordRepositoryPort.countByClientId(client.getId()),
+                                    clinicalRecordRepositoryPort.findByClientId(client.getId(), page, size)
+                                            .flatMap(this::enrichClinicalRecord)
+                                            .collectList()
+                            ).map(tuple -> PageResponse.of(tuple.getT2(), page, size, tuple.getT1())));
+                });
     }
 
     @Override
@@ -125,13 +136,6 @@ public class ClientServiceImpl implements ClientUseCase {
                                 return clinicalRecord;
                             });
                 });
-    }
-
-    private Mono<PageResponse<Client>> paginateAll(int page, int size, String search) {
-        return Mono.zip(
-                clientRepositoryPort.countAll(search),
-                clientRepositoryPort.findAll(page, size, search).collectList()
-        ).map(tuple -> PageResponse.of(tuple.getT2(), page, size, tuple.getT1()));
     }
 
     private Mono<PageResponse<Client>> paginateBySalonId(Long salonId, int page, int size, String search) {

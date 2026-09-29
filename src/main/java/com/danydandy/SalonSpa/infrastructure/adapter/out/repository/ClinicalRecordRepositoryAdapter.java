@@ -64,4 +64,16 @@ public class ClinicalRecordRepositoryAdapter implements ClinicalRecordRepository
     public Mono<Long> countBySalonId(Long salonId) {
         return clinicalRecordRepository.countBySalonId(salonId);
     }
+
+    @Override
+    public Flux<ClinicalRecord> findBySalonIdAndUserId(Long salonId, Long userId, int page, int size) {
+        long offset = (long) page * size;
+        return clinicalRecordRepository.findPageBySalonIdAndUserId(salonId, userId, size, offset)
+                .map(clinicalRecordMapper::toDomain);
+    }
+
+    @Override
+    public Mono<Long> countBySalonIdAndUserId(Long salonId, Long userId) {
+        return clinicalRecordRepository.countBySalonIdAndUserId(salonId, userId);
+    }
 }

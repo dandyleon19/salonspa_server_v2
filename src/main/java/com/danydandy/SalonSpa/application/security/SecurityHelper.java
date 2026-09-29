@@ -54,4 +54,11 @@ public final class SecurityHelper {
         }
         return Mono.empty();
     }
+
+    public static <T> Mono<T> requireOwnRecordOrAdmin(T entity, Long recordUserId, AuthUser authUser, String resource, Object id) {
+        if (isStaffUser(authUser) && (recordUserId == null || !recordUserId.equals(authUser.getUserId()))) {
+            return Mono.error(NotFoundException.forResource(resource, id));
+        }
+        return Mono.just(entity);
+    }
 }

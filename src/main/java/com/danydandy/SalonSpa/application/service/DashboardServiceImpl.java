@@ -35,7 +35,7 @@ public class DashboardServiceImpl implements DashboardUseCase {
         YearMonth yearMonth = YearMonth.from(targetDate);
         LocalDateTime monthStart = yearMonth.atDay(1).atStartOfDay();
         LocalDateTime monthEnd = yearMonth.plusMonths(1).atDay(1).atStartOfDay();
-        LocalDateTime upcomingFrom = LocalDateTime.now();
+        LocalDateTime upcomingFrom = LocalDate.now().plusDays(1).atStartOfDay();
 
         return SecurityHelper.currentUser()
                 .flatMap(authUser -> {

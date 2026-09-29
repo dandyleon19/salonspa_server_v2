@@ -14,4 +14,6 @@ public interface ClinicalRecordRepositoryPort {
     Mono<Long> countByClientId(Long clientId);
     Flux<ClinicalRecord> findBySalonId(Long salonId, int page, int size);
     Mono<Long> countBySalonId(Long salonId);
+    Flux<ClinicalRecord> findBySalonIdAndUserId(Long salonId, Long userId, int page, int size);
+    Mono<Long> countBySalonIdAndUserId(Long salonId, Long userId);
 }

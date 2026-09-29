@@ -34,10 +34,15 @@ public class UserService implements UserUseCase {
     @Override
     public Mono<User> findById(Long id) {
         return SecurityHelper.currentUser()
-                .flatMap(authUser -> userRepositoryPort.findById(id)
-                        .switchIfEmpty(Mono.error(NotFoundException.forResource("User", id)))
-                        .flatMap(user -> SecurityHelper.requireSameSalon(user, user.getSalonId(), authUser, "User", id))
-                        .flatMap(this::enrichWithSalon));
+                .flatMap(authUser -> {
+                    if (SecurityHelper.isStaffUser(authUser) && !id.equals(authUser.getUserId())) {
+                        return Mono.error(NotFoundException.forResource("User", id));
+                    }
+                    return userRepositoryPort.findById(id)
+                            .switchIfEmpty(Mono.error(NotFoundException.forResource("User", id)))
+                            .flatMap(user -> SecurityHelper.requireSameSalon(user, user.getSalonId(), authUser, "User", id))
+                            .flatMap(this::enrichWithSalon);
+                });
     }
 
     @Override

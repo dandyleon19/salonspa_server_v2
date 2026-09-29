@@ -34,4 +34,24 @@ public interface ClinicalRecordRepository extends R2dbcRepository<ClinicalRecord
             WHERE c.salon_id = :salonId
             """)
     Mono<Long> countBySalonId(Long salonId);
+
+    @Query("""
+            SELECT cr.id, cr.diagnosis, cr.treatment, cr.observations, cr.session_date,
+                   cr.client_id, cr.user_id, cr.branch_id, cr.follow_up_appointment_id,
+                   cr.created_at, cr.updated_at
+            FROM clinical_records cr
+            INNER JOIN clients c ON cr.client_id = c.id
+            WHERE c.salon_id = :salonId AND cr.user_id = :userId
+            ORDER BY cr.created_at ASC
+            LIMIT :limit OFFSET :offset
+            """)
+    Flux<ClinicalRecordEntity> findPageBySalonIdAndUserId(Long salonId, Long userId, int limit, long offset);
+
+    @Query("""
+            SELECT COUNT(*)
+            FROM clinical_records cr
+            INNER JOIN clients c ON cr.client_id = c.id
+            WHERE c.salon_id = :salonId AND cr.user_id = :userId
+            """)
+    Mono<Long> countBySalonIdAndUserId(Long salonId, Long userId);
 }
