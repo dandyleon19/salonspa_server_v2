@@ -34,3 +34,6 @@ build/
 
 ### Environment ###
 .env
+
+### Uploads (local dev; in prod this points outside the repo via UPLOADS_DIR) ###
+/uploads/

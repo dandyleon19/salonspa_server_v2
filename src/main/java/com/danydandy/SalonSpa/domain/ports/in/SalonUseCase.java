@@ -10,5 +10,6 @@ public interface SalonUseCase {
     Mono<PageResponse<Salon>> findPage(int page, int size);
     Mono<Salon> findById(Long id);
     Mono<Salon> update(Long id, Salon salon);
+    Mono<Salon> updateLogo(Long id, String logoUrl);
     Mono<Void> delete(Long id);
 }

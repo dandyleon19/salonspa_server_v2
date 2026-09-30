@@ -1,0 +1,2 @@
+ALTER TABLE salons
+    ADD COLUMN logo_url VARCHAR(500);

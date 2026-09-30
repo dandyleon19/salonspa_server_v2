@@ -14,6 +14,7 @@ public record UserResponse(
         Double commissionPercentage,
         Role role,
         Long salonId,
-        String salonName
+        String salonName,
+        String salonLogoUrl
 ) {
 }

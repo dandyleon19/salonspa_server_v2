@@ -10,6 +10,7 @@ public record SalonResponse(
         String fiscalAddress,
         String rucNumber,
         String phone,
+        String logoUrl,
         List<BranchResponse> branches,
         LocalDateTime createdAt,
         LocalDateTime updatedAt

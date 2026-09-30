@@ -16,5 +16,6 @@ public interface UserMapper {
             expression = "java(domain.getFirstName() + \" \" + domain.getLastName())"
     )
     @Mapping(target = "salonName", source = "salon.name")
+    @Mapping(target = "salonLogoUrl", source = "salon.logoUrl")
     UserResponse toResponse(User domain);
 }

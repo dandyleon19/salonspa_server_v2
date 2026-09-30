@@ -68,6 +68,19 @@ public class SalonServiceImpl implements SalonUseCase {
     }
 
     @Override
+    public Mono<Salon> updateLogo(Long id, String logoUrl) {
+        return SecurityHelper.currentUser()
+                .flatMap(authUser -> salonRepositoryPort.findById(id)
+                        .switchIfEmpty(Mono.error(NotFoundException.forResource("Salon", id)))
+                        .flatMap(existing -> SecurityHelper.requireSalonAccess(id, authUser, "Salon", id)
+                                .thenReturn(existing))
+                        .flatMap(existing -> {
+                            existing.setLogoUrl(logoUrl);
+                            return salonRepositoryPort.save(existing);
+                        }));
+    }
+
+    @Override
     public Mono<Void> delete(Long id) {
         return salonRepositoryPort.findById(id)
                 .switchIfEmpty(Mono.error(NotFoundException.forResource("Salon", id)))

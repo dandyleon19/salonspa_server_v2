@@ -17,6 +17,7 @@ public class Salon {
     private String fiscalAddress;
     private String rucNumber;
     private String phone;
+    private String logoUrl;
     private List<Branch> branches;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

@@ -27,6 +27,8 @@ public class SalonEntity {
     @Column("ruc_number")
     private String rucNumber;
     private String phone;
+    @Column("logo_url")
+    private String logoUrl;
 
     @Column("created_at")
     private LocalDateTime createdAt;
