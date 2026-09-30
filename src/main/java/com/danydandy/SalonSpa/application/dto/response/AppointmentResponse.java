@@ -2,6 +2,7 @@ package com.danydandy.SalonSpa.application.dto.response;
 
 import com.danydandy.SalonSpa.domain.model.Gender;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -16,6 +17,9 @@ public record AppointmentResponse(
         LocalDateTime endAt,
         String status,
         String notes,
+        BigDecimal depositAmount,
+        String depositPaymentMethod,
+        LocalDateTime depositPaidAt,
         String clientName,
         String clientPhone,
         String clientEmail,

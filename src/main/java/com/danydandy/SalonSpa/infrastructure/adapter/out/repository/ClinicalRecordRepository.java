@@ -22,7 +22,7 @@ public interface ClinicalRecordRepository extends R2dbcRepository<ClinicalRecord
             FROM clinical_records cr
             INNER JOIN clients c ON cr.client_id = c.id
             WHERE c.salon_id = :salonId
-            ORDER BY cr.created_at ASC
+            ORDER BY cr.created_at ASC, cr.id ASC
             LIMIT :limit OFFSET :offset
             """)
     Flux<ClinicalRecordEntity> findPageBySalonId(Long salonId, int limit, long offset);
@@ -42,7 +42,7 @@ public interface ClinicalRecordRepository extends R2dbcRepository<ClinicalRecord
             FROM clinical_records cr
             INNER JOIN clients c ON cr.client_id = c.id
             WHERE c.salon_id = :salonId AND cr.user_id = :userId
-            ORDER BY cr.created_at ASC
+            ORDER BY cr.created_at ASC, cr.id ASC
             LIMIT :limit OFFSET :offset
             """)
     Flux<ClinicalRecordEntity> findPageBySalonIdAndUserId(Long salonId, Long userId, int limit, long offset);

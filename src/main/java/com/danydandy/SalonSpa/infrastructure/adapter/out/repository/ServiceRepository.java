@@ -8,11 +8,11 @@ import reactor.core.publisher.Mono;
 
 public interface ServiceRepository extends R2dbcRepository<ServiceEntity, Long> {
 
-    Flux<ServiceEntity> findByCategoryIdOrderByCreatedAtAsc(Long categoryId);
+    Flux<ServiceEntity> findByCategoryIdOrderByCreatedAtAscIdAsc(Long categoryId);
 
-    Flux<ServiceEntity> findAllByOrderByCreatedAtAsc(Pageable pageable);
+    Flux<ServiceEntity> findAllByOrderByCreatedAtAscIdAsc(Pageable pageable);
 
-    Flux<ServiceEntity> findBySalonIdOrderByCreatedAtAsc(Long salonId, Pageable pageable);
+    Flux<ServiceEntity> findBySalonIdOrderByCreatedAtAscIdAsc(Long salonId, Pageable pageable);
 
     Mono<Long> countBySalonId(Long salonId);
 }

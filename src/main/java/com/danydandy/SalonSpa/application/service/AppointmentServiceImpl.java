@@ -125,6 +125,11 @@ public class AppointmentServiceImpl implements AppointmentUseCase {
                                                                 existing.setCancellationReason(appointment.getCancellationReason());
                                                             }
                                                         }
+                                                        if (appointment.getDepositAmount() != null) {
+                                                            existing.setDepositAmount(appointment.getDepositAmount());
+                                                            existing.setDepositPaymentMethod(appointment.getDepositPaymentMethod());
+                                                            existing.setDepositPaidAt(LocalDateTime.now());
+                                                        }
                                                         return appointmentRepositoryPort.save(existing);
                                                     }))));
                         })
@@ -141,6 +146,9 @@ public class AppointmentServiceImpl implements AppointmentUseCase {
     private Mono<Appointment> persistAppointment(Appointment appointment, Long authSalonId, Long excludeId) {
         if (appointment.getStatus() == null) {
             appointment.setStatus(AppointmentStatus.SCHEDULED);
+        }
+        if (appointment.getDepositAmount() != null) {
+            appointment.setDepositPaidAt(LocalDateTime.now());
         }
         return validateReferences(appointment.getClientId(), appointment.getUserId(), appointment.getBranchId(),
                 appointment.getServiceId(), authSalonId)

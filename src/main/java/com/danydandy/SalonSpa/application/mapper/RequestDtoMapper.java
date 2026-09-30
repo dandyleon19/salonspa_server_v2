@@ -169,6 +169,8 @@ public class RequestDtoMapper {
                 .serviceId(request.getServiceId())
                 .startAt(request.getStartAt())
                 .notes(request.getNotes())
+                .depositAmount(request.getDepositAmount())
+                .depositPaymentMethod(request.getDepositPaymentMethod())
                 .build();
     }
 
@@ -181,6 +183,8 @@ public class RequestDtoMapper {
                 .status(request.getStatus())
                 .notes(request.getNotes())
                 .cancellationReason(request.getCancellationReason())
+                .depositAmount(request.getDepositAmount())
+                .depositPaymentMethod(request.getDepositPaymentMethod())
                 .build();
     }
 

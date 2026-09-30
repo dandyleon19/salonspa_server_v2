@@ -32,7 +32,7 @@ public interface AppointmentRepository extends R2dbcRepository<AppointmentEntity
               AND (:clientId IS NULL OR a.client_id = :clientId)
               AND (:date IS NULL OR CAST(a.start_at AS DATE) = :date)
               AND (:status IS NULL OR a.status = :status)
-            ORDER BY a.start_at ASC
+            ORDER BY a.start_at ASC, a.id ASC
             LIMIT :limit OFFSET :offset
             """)
     Flux<AppointmentEntity> findPage(Long branchId, Long userId, Long clientId, LocalDate date, String status,
@@ -60,7 +60,7 @@ public interface AppointmentRepository extends R2dbcRepository<AppointmentEntity
               AND (:clientId IS NULL OR a.client_id = :clientId)
               AND (:date IS NULL OR CAST(a.start_at AS DATE) = :date)
               AND (:status IS NULL OR a.status = :status)
-            ORDER BY a.start_at ASC
+            ORDER BY a.start_at ASC, a.id ASC
             LIMIT :limit OFFSET :offset
             """)
     Flux<AppointmentEntity> findPageBySalonId(Long salonId, Long branchId, Long userId, Long clientId,
@@ -88,7 +88,7 @@ public interface AppointmentRepository extends R2dbcRepository<AppointmentEntity
               AND (:branchId IS NULL OR a.branch_id = :branchId)
               AND (:userId IS NULL OR a.user_id = :userId)
               AND (:status IS NULL OR a.status = :status)
-            ORDER BY a.start_at ASC
+            ORDER BY a.start_at ASC, a.id ASC
             LIMIT :limit
             """)
     Flux<AppointmentEntity> findByPeriod(Long branchId, Long userId, String status, LocalDateTime periodStart,
@@ -117,7 +117,7 @@ public interface AppointmentRepository extends R2dbcRepository<AppointmentEntity
               AND (:branchId IS NULL OR a.branch_id = :branchId)
               AND (:userId IS NULL OR a.user_id = :userId)
               AND (:status IS NULL OR a.status = :status)
-            ORDER BY a.start_at ASC
+            ORDER BY a.start_at ASC, a.id ASC
             LIMIT :limit
             """)
     Flux<AppointmentEntity> findBySalonIdAndPeriod(Long salonId, Long branchId, Long userId, String status,
@@ -146,7 +146,7 @@ public interface AppointmentRepository extends R2dbcRepository<AppointmentEntity
               AND (:salonId IS NULL OR a.salon_id = :salonId)
               AND (:branchId IS NULL OR a.branch_id = :branchId)
               AND (:userId IS NULL OR a.user_id = :userId)
-            ORDER BY a.start_at ASC
+            ORDER BY a.start_at ASC, a.id ASC
             LIMIT :limit
             """)
     Flux<AppointmentEntity> findUpcoming(Long salonId, Long branchId, Long userId, LocalDateTime from, int limit);

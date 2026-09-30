@@ -17,7 +17,7 @@ public interface ServiceCategoryRepository extends R2dbcRepository<ServiceCatego
                 OR description ILIKE :search
                 OR long_description ILIKE :search
             )
-            ORDER BY created_at ASC
+            ORDER BY created_at ASC, id ASC
             LIMIT :limit OFFSET :offset
             """)
     Flux<ServiceCategoryEntity> findPage(String search, int limit, long offset);
@@ -44,7 +44,7 @@ public interface ServiceCategoryRepository extends R2dbcRepository<ServiceCatego
                   OR description ILIKE :search
                   OR long_description ILIKE :search
               )
-            ORDER BY created_at ASC
+            ORDER BY created_at ASC, id ASC
             LIMIT :limit OFFSET :offset
             """)
     Flux<ServiceCategoryEntity> findPageBySalonId(Long salonId, String search, int limit, long offset);

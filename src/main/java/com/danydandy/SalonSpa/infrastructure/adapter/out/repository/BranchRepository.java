@@ -19,7 +19,7 @@ public interface BranchRepository extends R2dbcRepository<BranchEntity, Long> {
                 OR address ILIKE :search
                 OR city ILIKE :search
             )
-            ORDER BY created_at ASC
+            ORDER BY created_at ASC, id ASC
             LIMIT :limit OFFSET :offset
             """)
     Flux<BranchEntity> findPage(String search, int limit, long offset);
@@ -46,7 +46,7 @@ public interface BranchRepository extends R2dbcRepository<BranchEntity, Long> {
                   OR address ILIKE :search
                   OR city ILIKE :search
               )
-            ORDER BY created_at ASC
+            ORDER BY created_at ASC, id ASC
             LIMIT :limit OFFSET :offset
             """)
     Flux<BranchEntity> findPageBySalonId(Long salonId, String search, int limit, long offset);

@@ -22,7 +22,7 @@ public class SalonRepositoryAdapter implements SalonRepositoryPort {
 
     @Override
     public Flux<Salon> findAll(int page, int size) {
-        return salonRepository.findAllByOrderByCreatedAtAsc(PageRequest.of(page, size))
+        return salonRepository.findAllByOrderByCreatedAtAscIdAsc(PageRequest.of(page, size))
                 .map(salonMapper::toDomain);
     }
 

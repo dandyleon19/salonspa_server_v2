@@ -23,7 +23,7 @@ public interface UserRepository extends R2dbcRepository<UserEntity, Long> {
                   OR email ILIKE :search
                   OR role ILIKE :search
               )
-            ORDER BY created_at ASC
+            ORDER BY created_at ASC, id ASC
             LIMIT :limit OFFSET :offset
             """)
     Flux<UserEntity> findPage(Boolean isActive, String role, String search, int limit, long offset);
@@ -57,7 +57,7 @@ public interface UserRepository extends R2dbcRepository<UserEntity, Long> {
                   OR email ILIKE :search
                   OR role ILIKE :search
               )
-            ORDER BY created_at ASC
+            ORDER BY created_at ASC, id ASC
             LIMIT :limit OFFSET :offset
             """)
     Flux<UserEntity> findPageBySalonId(Long salonId, Boolean isActive, String role, String search, int limit,

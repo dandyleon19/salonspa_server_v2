@@ -20,7 +20,7 @@ public interface ClientRepository extends R2dbcRepository<ClientEntity, Long> {
                 OR phone ILIKE :search
                 OR email ILIKE :search
             )
-            ORDER BY created_at ASC
+            ORDER BY created_at ASC, id ASC
             LIMIT :limit OFFSET :offset
             """)
     Flux<ClientEntity> findPage(String search, int limit, long offset);
@@ -52,7 +52,7 @@ public interface ClientRepository extends R2dbcRepository<ClientEntity, Long> {
                   OR phone ILIKE :search
                   OR email ILIKE :search
               )
-            ORDER BY created_at ASC
+            ORDER BY created_at ASC, id ASC
             LIMIT :limit OFFSET :offset
             """)
     Flux<ClientEntity> findPageBySalonId(Long salonId, String search, int limit, long offset);

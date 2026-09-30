@@ -1,6 +1,7 @@
 package com.danydandy.SalonSpa.application.dto.request;
 
 import com.danydandy.SalonSpa.domain.model.AppointmentStatus;
+import com.danydandy.SalonSpa.domain.model.PaymentMethod;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
@@ -8,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
@@ -32,4 +34,9 @@ public class UpdateAppointmentRequest {
     private String notes;
 
     private String cancellationReason;
+
+    @Positive(message = "Deposit amount must be positive")
+    private BigDecimal depositAmount;
+
+    private PaymentMethod depositPaymentMethod;
 }

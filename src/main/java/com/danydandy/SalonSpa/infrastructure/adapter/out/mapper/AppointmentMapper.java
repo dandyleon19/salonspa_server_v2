@@ -3,6 +3,7 @@ package com.danydandy.SalonSpa.infrastructure.adapter.out.mapper;
 import com.danydandy.SalonSpa.application.dto.response.AppointmentResponse;
 import com.danydandy.SalonSpa.domain.model.Appointment;
 import com.danydandy.SalonSpa.domain.model.AppointmentStatus;
+import com.danydandy.SalonSpa.domain.model.PaymentMethod;
 import com.danydandy.SalonSpa.infrastructure.adapter.out.entity.AppointmentEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -12,12 +13,15 @@ import org.mapstruct.Named;
 public interface AppointmentMapper {
 
     @Mapping(target = "status", source = "status", qualifiedByName = "stringToStatus")
+    @Mapping(target = "depositPaymentMethod", source = "depositPaymentMethod", qualifiedByName = "stringToMethod")
     Appointment toDomain(AppointmentEntity entity);
 
     @Mapping(target = "status", source = "status", qualifiedByName = "statusToString")
+    @Mapping(target = "depositPaymentMethod", source = "depositPaymentMethod", qualifiedByName = "methodToString")
     AppointmentEntity toEntity(Appointment domain);
 
     @Mapping(target = "status", source = "status", qualifiedByName = "statusToResponseString")
+    @Mapping(target = "depositPaymentMethod", source = "depositPaymentMethod", qualifiedByName = "methodToString")
     AppointmentResponse toResponse(Appointment domain);
 
     @Named("stringToStatus")
@@ -33,5 +37,15 @@ public interface AppointmentMapper {
     @Named("statusToResponseString")
     default String statusToResponseString(AppointmentStatus status) {
         return status != null ? status.name() : null;
+    }
+
+    @Named("stringToMethod")
+    default PaymentMethod stringToMethod(String method) {
+        return method != null ? PaymentMethod.valueOf(method) : null;
+    }
+
+    @Named("methodToString")
+    default String methodToString(PaymentMethod method) {
+        return method != null ? method.name() : null;
     }
 }

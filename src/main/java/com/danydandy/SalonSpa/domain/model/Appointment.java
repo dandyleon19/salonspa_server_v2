@@ -2,6 +2,7 @@ package com.danydandy.SalonSpa.domain.model;
 
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -23,6 +24,9 @@ public class Appointment {
     private String notes;
     private LocalDateTime cancelledAt;
     private String cancellationReason;
+    private BigDecimal depositAmount;
+    private PaymentMethod depositPaymentMethod;
+    private LocalDateTime depositPaidAt;
     private String clientName;
     private String clientPhone;
     private String clientEmail;

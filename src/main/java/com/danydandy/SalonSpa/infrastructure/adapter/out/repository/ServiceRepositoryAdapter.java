@@ -22,7 +22,7 @@ public class ServiceRepositoryAdapter implements ServiceRepositoryPort {
 
     @Override
     public Flux<Service> findAll(int page, int size) {
-        return serviceRepository.findAllByOrderByCreatedAtAsc(PageRequest.of(page, size))
+        return serviceRepository.findAllByOrderByCreatedAtAscIdAsc(PageRequest.of(page, size))
                 .map(serviceMapper::toDomain);
     }
 
@@ -44,7 +44,7 @@ public class ServiceRepositoryAdapter implements ServiceRepositoryPort {
 
     @Override
     public Flux<Service> findBySalonId(Long salonId, int page, int size) {
-        return serviceRepository.findBySalonIdOrderByCreatedAtAsc(salonId, PageRequest.of(page, size))
+        return serviceRepository.findBySalonIdOrderByCreatedAtAscIdAsc(salonId, PageRequest.of(page, size))
                 .map(serviceMapper::toDomain);
     }
 
@@ -55,7 +55,7 @@ public class ServiceRepositoryAdapter implements ServiceRepositoryPort {
 
     @Override
     public Flux<Service> findByCategoryId(Long id) {
-        return serviceRepository.findByCategoryIdOrderByCreatedAtAsc(id)
+        return serviceRepository.findByCategoryIdOrderByCreatedAtAscIdAsc(id)
                 .map(serviceMapper::toDomain);
     }
 }
