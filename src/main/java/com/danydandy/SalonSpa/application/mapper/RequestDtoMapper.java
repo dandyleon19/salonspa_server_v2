@@ -130,6 +130,47 @@ public class RequestDtoMapper {
                 .build();
     }
 
+    public Product toProduct(CreateProductRequest request) {
+        return Product.builder()
+                .categoryId(request.getCategoryId())
+                .name(request.getName())
+                .description(request.getDescription())
+                .longDescription(request.getLongDescription())
+                .price(request.getPrice())
+                .stockQuantity(request.getStockQuantity())
+                .lowStockThreshold(request.getLowStockThreshold() != null ? request.getLowStockThreshold() : 5)
+                .isActive(request.getIsActive())
+                .build();
+    }
+
+    public Product toProduct(UpdateProductRequest request) {
+        return Product.builder()
+                .name(request.getName())
+                .description(request.getDescription())
+                .longDescription(request.getLongDescription())
+                .price(request.getPrice())
+                .stockQuantity(request.getStockQuantity())
+                .lowStockThreshold(request.getLowStockThreshold() != null ? request.getLowStockThreshold() : 5)
+                .isActive(request.getIsActive())
+                .build();
+    }
+
+    public ProductCategory toProductCategory(CreateProductCategoryRequest request) {
+        return ProductCategory.builder()
+                .name(request.getName())
+                .description(request.getDescription())
+                .longDescription(request.getLongDescription())
+                .build();
+    }
+
+    public ProductCategory toProductCategory(UpdateProductCategoryRequest request) {
+        return ProductCategory.builder()
+                .name(request.getName())
+                .description(request.getDescription())
+                .longDescription(request.getLongDescription())
+                .build();
+    }
+
     public ClinicalRecord toClinicalRecord(CreateClinicalRecordRequest request) {
         ClinicalRecord clinicalRecord = ClinicalRecord.builder()
                 .clientId(request.getClientId())
@@ -213,6 +254,7 @@ public class RequestDtoMapper {
     public SaleItem toSaleItem(CreateSaleItemRequest request) {
         return SaleItem.builder()
                 .serviceId(request.getServiceId())
+                .productId(request.getProductId())
                 .userId(request.getUserId())
                 .appointmentId(request.getAppointmentId())
                 .quantity(request.getQuantity())

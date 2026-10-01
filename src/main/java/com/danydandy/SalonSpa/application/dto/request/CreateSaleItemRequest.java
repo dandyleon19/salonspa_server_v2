@@ -1,6 +1,5 @@
 package com.danydandy.SalonSpa.application.dto.request;
 
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
@@ -16,11 +15,12 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class CreateSaleItemRequest {
 
-    @NotNull(message = "Service id is required")
     @Positive(message = "Service id must be positive")
     private Long serviceId;
 
-    @NotNull(message = "User id is required")
+    @Positive(message = "Product id must be positive")
+    private Long productId;
+
     @Positive(message = "User id must be positive")
     private Long userId;
 

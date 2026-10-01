@@ -41,7 +41,9 @@ public class SaleController {
     @PostMapping
     public Mono<ResponseEntity<SaleResponse>> create(@Valid @RequestBody CreateSaleRequest request) {
         List<SaleItem> items = request.getItems().stream().map(requestDtoMapper::toSaleItem).toList();
-        List<SalePayment> payments = request.getPayments().stream().map(requestDtoMapper::toSalePayment).toList();
+        List<SalePayment> payments = request.getPayments() == null
+                ? List.of()
+                : request.getPayments().stream().map(requestDtoMapper::toSalePayment).toList();
         return saleUseCase.create(requestDtoMapper.toSale(request), items, payments)
                 .map(saleMapper::toResponse)
                 .map(sale -> ResponseEntity.status(HttpStatus.CREATED).body(sale));

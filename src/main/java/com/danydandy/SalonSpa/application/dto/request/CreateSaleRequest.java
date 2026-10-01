@@ -42,7 +42,6 @@ public class CreateSaleRequest {
     @Valid
     private List<CreateSaleItemRequest> items;
 
-    @NotEmpty(message = "At least one payment is required")
     @Valid
     private List<CreateSalePaymentRequest> payments;
 }

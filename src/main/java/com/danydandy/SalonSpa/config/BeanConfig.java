@@ -7,6 +7,7 @@ import com.danydandy.SalonSpa.infrastructure.adapter.out.mapper.*;
 import com.danydandy.SalonSpa.infrastructure.adapter.out.repository.*;
 import com.danydandy.SalonSpa.config.properties.JwtProperties;
 import com.danydandy.SalonSpa.infrastructure.security.JwtService;
+import com.danydandy.SalonSpa.infrastructure.storage.FileStorageService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -143,6 +144,43 @@ public class BeanConfig {
     }
 
     @Bean
+    public ProductCategoryUseCase productCategoryUseCase(ProductCategoryRepositoryPort productCategoryRepositoryPort, ProductRepositoryPort productRepositoryPort) {
+        return new ProductCategoryServiceImpl(productCategoryRepositoryPort, productRepositoryPort);
+    }
+
+    @Bean
+    public ProductCategoryRepositoryPort productCategoryRepositoryPort(ProductCategoryRepository repository, ProductCategoryMapper productCategoryMapper) {
+        return new ProductCategoryRepositoryAdapter(repository, productCategoryMapper);
+    }
+
+    @Bean
+    public ProductUseCase productUseCase(ProductRepositoryPort productRepositoryPort, FileStorageService fileStorageService) {
+        return new ProductServiceImpl(productRepositoryPort, fileStorageService);
+    }
+
+    @Bean
+    public ProductRepositoryPort productRepositoryPort(ProductRepository repository, ProductMapper productMapper) {
+        return new ProductRepositoryAdapter(repository, productMapper);
+    }
+
+    @Bean
+    public ProductStockMovementUseCase productStockMovementUseCase(
+            ProductStockMovementRepositoryPort productStockMovementRepositoryPort,
+            ProductRepositoryPort productRepositoryPort,
+            UserRepositoryPort userRepositoryPort
+    ) {
+        return new ProductStockMovementServiceImpl(productStockMovementRepositoryPort, productRepositoryPort, userRepositoryPort);
+    }
+
+    @Bean
+    public ProductStockMovementRepositoryPort productStockMovementRepositoryPort(
+            ProductStockMovementRepository repository,
+            ProductStockMovementMapper productStockMovementMapper
+    ) {
+        return new ProductStockMovementRepositoryAdapter(repository, productStockMovementMapper);
+    }
+
+    @Bean
     public ClinicalRecordServiceRepositoryPort clinicalRecordServiceRepositoryPort(ClinicalRecordServiceRepository repository, ClinicalRecordServiceMapper clinicalRecordServiceMapper) {
         return new ClinicalRecordServiceRepositoryAdapter(repository, clinicalRecordServiceMapper);
     }
@@ -214,6 +252,8 @@ public class BeanConfig {
             BranchRepositoryPort branchRepositoryPort,
             UserRepositoryPort userRepositoryPort,
             ServiceRepositoryPort serviceRepositoryPort,
+            ProductRepositoryPort productRepositoryPort,
+            ProductStockMovementRepositoryPort productStockMovementRepositoryPort,
             AppointmentRepositoryPort appointmentRepositoryPort,
             SaleEnricher saleEnricher
     ) {
@@ -226,6 +266,8 @@ public class BeanConfig {
                 branchRepositoryPort,
                 userRepositoryPort,
                 serviceRepositoryPort,
+                productRepositoryPort,
+                productStockMovementRepositoryPort,
                 appointmentRepositoryPort,
                 saleEnricher
         );

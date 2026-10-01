@@ -23,12 +23,16 @@ public class SaleItemEntity {
     private Long saleId;
     @Column("service_id")
     private Long serviceId;
+    @Column("product_id")
+    private Long productId;
     @Column("user_id")
     private Long userId;
     @Column("appointment_id")
     private Long appointmentId;
     @Column("service_name")
     private String serviceName;
+    @Column("product_name")
+    private String productName;
     private Integer quantity;
     @Column("unit_price")
     private BigDecimal unitPrice;

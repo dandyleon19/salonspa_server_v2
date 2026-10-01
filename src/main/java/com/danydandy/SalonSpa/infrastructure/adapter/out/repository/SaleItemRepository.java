@@ -8,8 +8,8 @@ import reactor.core.publisher.Flux;
 public interface SaleItemRepository extends R2dbcRepository<SaleItemEntity, Long> {
 
     @Query("""
-            SELECT id, sale_id, service_id, user_id, appointment_id, service_name, quantity,
-                   unit_price, discount_amount, line_total, created_at
+            SELECT id, sale_id, service_id, product_id, user_id, appointment_id, service_name, product_name,
+                   quantity, unit_price, discount_amount, line_total, created_at
             FROM sale_items
             WHERE sale_id = :saleId
             ORDER BY id ASC

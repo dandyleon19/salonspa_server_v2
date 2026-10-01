@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @RequiredArgsConstructor
 public class SaleServiceImpl implements SaleUseCase {
@@ -33,14 +34,17 @@ public class SaleServiceImpl implements SaleUseCase {
     private final BranchRepositoryPort branchRepositoryPort;
     private final UserRepositoryPort userRepositoryPort;
     private final ServiceRepositoryPort serviceRepositoryPort;
+    private final ProductRepositoryPort productRepositoryPort;
+    private final ProductStockMovementRepositoryPort productStockMovementRepositoryPort;
     private final AppointmentRepositoryPort appointmentRepositoryPort;
     private final SaleEnricher saleEnricher;
 
     @Override
     public Mono<Sale> create(Sale sale, List<SaleItem> items, List<SalePayment> payments) {
+        Map<SaleItem, Integer> resultingStockByItem = new ConcurrentHashMap<>();
         return SecurityHelper.currentUser()
                 .flatMap(authUser -> validateReferences(sale, items, authUser)
-                        .flatMap(salonId -> buildLineItems(items, salonId, sale.getClientId())
+                        .flatMap(salonId -> buildLineItems(items, salonId, sale.getClientId(), resultingStockByItem)
                                 .collectList()
                                 .flatMap(builtItems -> {
                                     BigDecimal subtotal = sumLineTotals(builtItems);
@@ -68,7 +72,7 @@ public class SaleServiceImpl implements SaleUseCase {
                                     }
 
                                     return saleRepositoryPort.save(sale)
-                                            .flatMap(saved -> saveItems(saved.getId(), builtItems)
+                                            .flatMap(saved -> saveItems(saved.getId(), builtItems, resultingStockByItem, authUser.getUserId())
                                                     .then(savePayments(saved.getId(), payments))
                                                     .thenReturn(saved));
                                 }))
@@ -134,9 +138,25 @@ public class SaleServiceImpl implements SaleUseCase {
                             sale.setStatus(SaleStatus.CANCELLED);
                             sale.setCancelledAt(LocalDateTime.now());
                             sale.setCancellationReason(reason);
-                            return saleRepositoryPort.save(sale);
+                            return restoreProductStock(id, authUser.getUserId())
+                                    .then(saleRepositoryPort.save(sale));
                         })
                         .flatMap(saleEnricher::enrich));
+    }
+
+    private Mono<Void> restoreProductStock(Long saleId, Long userId) {
+        return saleItemRepositoryPort.findBySaleId(saleId)
+                .filter(item -> item.getProductId() != null && item.getQuantity() != null)
+                .concatMap(item -> productRepositoryPort.applyStockDelta(item.getProductId(), item.getQuantity())
+                        .flatMap(resultingStock -> productStockMovementRepositoryPort.save(ProductStockMovement.builder()
+                                .productId(item.getProductId())
+                                .movementType(StockMovementType.SALE_CANCELLED)
+                                .quantityDelta(item.getQuantity())
+                                .resultingStock(resultingStock)
+                                .saleId(saleId)
+                                .createdByUserId(userId)
+                                .build())))
+                .then();
     }
 
     @Override
@@ -239,9 +259,77 @@ public class SaleServiceImpl implements SaleUseCase {
                 });
     }
 
-    private Flux<SaleItem> buildLineItems(List<SaleItem> items, Long salonId, Long clientId) {
+    private Flux<SaleItem> buildLineItems(List<SaleItem> items, Long salonId, Long clientId,
+                                           Map<SaleItem, Integer> resultingStockByItem) {
         return Flux.fromIterable(items)
-                .concatMap(item -> validateItemReferences(item, salonId, clientId)
+                .concatMap(item -> {
+                    boolean hasService = item.getServiceId() != null;
+                    boolean hasProduct = item.getProductId() != null;
+                    if (hasService == hasProduct) {
+                        return Mono.<SaleItem>error(new BadRequestException(
+                                "Each sale item must reference exactly one of serviceId or productId"));
+                    }
+                    if (hasProduct) {
+                        return buildProductLineItem(item, salonId, resultingStockByItem);
+                    }
+                    return buildServiceLineItem(item, salonId, clientId);
+                });
+    }
+
+    private Mono<SaleItem> buildProductLineItem(SaleItem item, Long salonId,
+                                                 Map<SaleItem, Integer> resultingStockByItem) {
+        return productRepositoryPort.findById(item.getProductId())
+                .switchIfEmpty(Mono.error(NotFoundException.forResource("Product", item.getProductId())))
+                .flatMap(product -> {
+                    if (!salonId.equals(product.getSalonId())) {
+                        return Mono.error(new BadRequestException("Product does not belong to the same salon"));
+                    }
+                    if (Boolean.FALSE.equals(product.getIsActive())) {
+                        return Mono.error(new BadRequestException("Product is not active: " + product.getName()));
+                    }
+
+                    int quantity = item.getQuantity() != null && item.getQuantity() > 0
+                            ? item.getQuantity() : 1;
+                    if (product.getStockQuantity() == null || product.getStockQuantity() < quantity) {
+                        return Mono.error(new BadRequestException(
+                                "Insufficient stock for product: " + product.getName()));
+                    }
+
+                    BigDecimal unitPrice = item.getUnitPrice() != null
+                            ? normalizeMoney(item.getUnitPrice())
+                            : normalizeMoney(product.getPrice());
+                    BigDecimal lineDiscount = normalizeMoney(item.getDiscountAmount());
+                    BigDecimal lineSubtotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
+                    if (lineDiscount.compareTo(lineSubtotal) > 0) {
+                        return Mono.error(new BadRequestException(
+                                "Item discount cannot exceed line subtotal for product " + product.getName()));
+                    }
+                    BigDecimal lineTotal = lineSubtotal.subtract(lineDiscount);
+
+                    return productRepositoryPort.applyStockDelta(product.getId(), -quantity)
+                            .switchIfEmpty(Mono.error(new BadRequestException(
+                                    "Insufficient stock for product: " + product.getName())))
+                            .map(resultingStock -> {
+                                SaleItem built = SaleItem.builder()
+                                        .productId(product.getId())
+                                        .productName(product.getName())
+                                        .appointmentId(item.getAppointmentId())
+                                        .quantity(quantity)
+                                        .unitPrice(unitPrice)
+                                        .discountAmount(lineDiscount)
+                                        .lineTotal(lineTotal)
+                                        .build();
+                                resultingStockByItem.put(built, resultingStock);
+                                return built;
+                            });
+                });
+    }
+
+    private Mono<SaleItem> buildServiceLineItem(SaleItem item, Long salonId, Long clientId) {
+        if (item.getUserId() == null) {
+            return Mono.error(new BadRequestException("User id is required for service items"));
+        }
+        return validateItemReferences(item, salonId, clientId)
                         .flatMap(service -> {
                             int quantity = item.getQuantity() != null && item.getQuantity() > 0
                                     ? item.getQuantity() : 1;
@@ -272,7 +360,7 @@ public class SaleServiceImpl implements SaleUseCase {
                                     .lineTotal(lineTotal)
                                     .build();
                             return Mono.just(built);
-                        }));
+                        });
     }
 
     private Mono<Service> validateItemReferences(SaleItem item, Long salonId, Long clientId) {
@@ -299,18 +387,34 @@ public class SaleServiceImpl implements SaleUseCase {
                 });
     }
 
-    private Mono<Void> saveItems(Long saleId, List<SaleItem> items) {
+    private Mono<Void> saveItems(Long saleId, List<SaleItem> items, Map<SaleItem, Integer> resultingStockByItem,
+                                  Long userId) {
         return Flux.fromIterable(items)
                 .concatMap(item -> {
+                    Integer resultingStock = resultingStockByItem.get(item);
                     item.setSaleId(saleId);
-                    return saleItemRepositoryPort.save(item);
+                    return saleItemRepositoryPort.save(item)
+                            .flatMap(saved -> {
+                                if (item.getProductId() == null || resultingStock == null) {
+                                    return Mono.just(saved);
+                                }
+                                return productStockMovementRepositoryPort.save(ProductStockMovement.builder()
+                                                .productId(item.getProductId())
+                                                .movementType(StockMovementType.SALE)
+                                                .quantityDelta(-item.getQuantity())
+                                                .resultingStock(resultingStock)
+                                                .saleId(saleId)
+                                                .createdByUserId(userId)
+                                                .build())
+                                        .thenReturn(saved);
+                            });
                 })
                 .then();
     }
 
     private Mono<Void> savePayments(Long saleId, List<SalePayment> payments) {
         if (payments == null || payments.isEmpty()) {
-            return Mono.error(new BadRequestException("At least one payment is required"));
+            return Mono.empty();
         }
         return Flux.fromIterable(payments)
                 .concatMap(payment -> {
