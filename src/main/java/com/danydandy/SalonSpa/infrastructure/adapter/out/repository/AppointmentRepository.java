@@ -25,7 +25,7 @@ public interface AppointmentRepository extends R2dbcRepository<AppointmentEntity
     @Query("""
             SELECT a.id, a.client_id, a.user_id, a.branch_id, a.salon_id, a.service_id,
                    a.start_at, a.end_at, a.status, a.notes, a.cancelled_at, a.cancellation_reason,
-                   a.created_at, a.updated_at
+                   a.reminder_sent_at, a.created_at, a.updated_at
             FROM appointments a
             WHERE (:branchId IS NULL OR a.branch_id = :branchId)
               AND (:userId IS NULL OR a.user_id = :userId)
@@ -52,7 +52,7 @@ public interface AppointmentRepository extends R2dbcRepository<AppointmentEntity
     @Query("""
             SELECT a.id, a.client_id, a.user_id, a.branch_id, a.salon_id, a.service_id,
                    a.start_at, a.end_at, a.status, a.notes, a.cancelled_at, a.cancellation_reason,
-                   a.created_at, a.updated_at
+                   a.reminder_sent_at, a.created_at, a.updated_at
             FROM appointments a
             WHERE a.salon_id = :salonId
               AND (:branchId IS NULL OR a.branch_id = :branchId)
@@ -81,7 +81,7 @@ public interface AppointmentRepository extends R2dbcRepository<AppointmentEntity
     @Query("""
             SELECT a.id, a.client_id, a.user_id, a.branch_id, a.salon_id, a.service_id,
                    a.start_at, a.end_at, a.status, a.notes, a.cancelled_at, a.cancellation_reason,
-                   a.created_at, a.updated_at
+                   a.reminder_sent_at, a.created_at, a.updated_at
             FROM appointments a
             WHERE a.start_at >= :periodStart
               AND a.start_at < :periodEnd
@@ -109,7 +109,7 @@ public interface AppointmentRepository extends R2dbcRepository<AppointmentEntity
     @Query("""
             SELECT a.id, a.client_id, a.user_id, a.branch_id, a.salon_id, a.service_id,
                    a.start_at, a.end_at, a.status, a.notes, a.cancelled_at, a.cancellation_reason,
-                   a.created_at, a.updated_at
+                   a.reminder_sent_at, a.created_at, a.updated_at
             FROM appointments a
             WHERE a.salon_id = :salonId
               AND a.start_at >= :periodStart
@@ -139,7 +139,7 @@ public interface AppointmentRepository extends R2dbcRepository<AppointmentEntity
     @Query("""
             SELECT a.id, a.client_id, a.user_id, a.branch_id, a.salon_id, a.service_id,
                    a.start_at, a.end_at, a.status, a.notes, a.cancelled_at, a.cancellation_reason,
-                   a.created_at, a.updated_at
+                   a.reminder_sent_at, a.created_at, a.updated_at
             FROM appointments a
             WHERE a.start_at >= :from
               AND a.status NOT IN ('CANCELLED', 'NO_SHOW')

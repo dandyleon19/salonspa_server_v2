@@ -18,4 +18,5 @@ public interface AppointmentUseCase {
     Mono<Appointment> update(Long id, Appointment appointment);
     Mono<Void> delete(Long id);
     Mono<Appointment> scheduleFollowUp(Appointment appointment);
+    Mono<Appointment> markReminderSent(Long id);
 }

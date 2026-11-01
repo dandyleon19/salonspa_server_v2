@@ -39,6 +39,8 @@ public class AppointmentEntity {
     private LocalDateTime cancelledAt;
     @Column("cancellation_reason")
     private String cancellationReason;
+    @Column("reminder_sent_at")
+    private LocalDateTime reminderSentAt;
     @Column("deposit_amount")
     private BigDecimal depositAmount;
     @Column("deposit_payment_method")

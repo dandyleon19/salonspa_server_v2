@@ -143,6 +143,17 @@ public class AppointmentServiceImpl implements AppointmentUseCase {
                         .flatMap(appointment -> appointmentRepositoryPort.deleteById(id)));
     }
 
+    @Override
+    public Mono<Appointment> markReminderSent(Long id) {
+        return SecurityHelper.currentUser()
+                .flatMap(authUser -> loadWithTenantCheck(id, authUser)
+                        .flatMap(existing -> {
+                            existing.setReminderSentAt(LocalDateTime.now());
+                            return appointmentRepositoryPort.save(existing);
+                        }))
+                .flatMap(appointmentEnricher::enrich);
+    }
+
     private Mono<Appointment> persistAppointment(Appointment appointment, Long authSalonId, Long excludeId) {
         if (appointment.getStatus() == null) {
             appointment.setStatus(AppointmentStatus.SCHEDULED);

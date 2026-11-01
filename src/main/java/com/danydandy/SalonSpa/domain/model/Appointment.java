@@ -24,6 +24,7 @@ public class Appointment {
     private String notes;
     private LocalDateTime cancelledAt;
     private String cancellationReason;
+    private LocalDateTime reminderSentAt;
     private BigDecimal depositAmount;
     private PaymentMethod depositPaymentMethod;
     private LocalDateTime depositPaidAt;

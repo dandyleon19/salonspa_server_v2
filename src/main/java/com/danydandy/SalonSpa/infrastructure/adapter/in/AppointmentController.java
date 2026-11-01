@@ -110,4 +110,11 @@ public class AppointmentController {
         return appointmentUseCase.delete(id)
                 .then(Mono.just(ResponseEntity.noContent().build()));
     }
+
+    @PostMapping("/{id}/reminder-sent")
+    public Mono<ResponseEntity<AppointmentResponse>> markReminderSent(@PathVariable @Positive Long id) {
+        return appointmentUseCase.markReminderSent(id)
+                .map(appointmentMapper::toResponse)
+                .map(ResponseEntity::ok);
+    }
 }

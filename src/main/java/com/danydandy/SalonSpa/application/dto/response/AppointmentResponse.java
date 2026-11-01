@@ -17,6 +17,7 @@ public record AppointmentResponse(
         LocalDateTime endAt,
         String status,
         String notes,
+        LocalDateTime reminderSentAt,
         BigDecimal depositAmount,
         String depositPaymentMethod,
         LocalDateTime depositPaidAt,
