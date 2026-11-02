@@ -10,6 +10,7 @@ import com.danydandy.SalonSpa.domain.model.Salon;
 import com.danydandy.SalonSpa.domain.model.User;
 import com.danydandy.SalonSpa.config.properties.JwtProperties;
 import com.danydandy.SalonSpa.domain.model.RefreshToken;
+import com.danydandy.SalonSpa.domain.ports.in.SubscriptionUseCase;
 import com.danydandy.SalonSpa.domain.ports.out.RefreshTokenRepositoryPort;
 import com.danydandy.SalonSpa.domain.ports.out.SalonRepositoryPort;
 import com.danydandy.SalonSpa.domain.ports.out.UserRepositoryPort;
@@ -57,6 +58,9 @@ class AuthServiceImplTest {
     @Mock
     private JwtProperties jwtProperties;
 
+    @Mock
+    private SubscriptionUseCase subscriptionUseCase;
+
     private AuthServiceImpl authService;
 
     @BeforeEach
@@ -67,7 +71,8 @@ class AuthServiceImplTest {
                 refreshTokenRepositoryPort,
                 passwordEncoder,
                 jwtService,
-                jwtProperties
+                jwtProperties,
+                subscriptionUseCase
         );
     }
 
@@ -152,6 +157,8 @@ class AuthServiceImplTest {
                 .build();
 
         when(passwordEncoder.encode("password123")).thenReturn("hashed");
+        when(userRepositoryPort.countBySalonId(5L, true, null, null)).thenReturn(Mono.just(1L));
+        when(subscriptionUseCase.requireWithinLimit(5L, SubscriptionUseCase.LIMIT_USERS, 1L)).thenReturn(Mono.empty());
         when(userRepositoryPort.save(any(User.class))).thenReturn(Mono.just(savedUser));
 
         StepVerifier.create(
@@ -190,6 +197,8 @@ class AuthServiceImplTest {
 
         when(passwordEncoder.encode("password123")).thenReturn("hashed");
         when(salonRepositoryPort.findById(3L)).thenReturn(Mono.just(Salon.builder().id(3L).name("Spa Norte").build()));
+        when(userRepositoryPort.countBySalonId(3L, true, null, null)).thenReturn(Mono.just(1L));
+        when(subscriptionUseCase.requireWithinLimit(3L, SubscriptionUseCase.LIMIT_USERS, 1L)).thenReturn(Mono.empty());
         when(userRepositoryPort.save(any(User.class))).thenReturn(Mono.just(savedUser));
 
         StepVerifier.create(
