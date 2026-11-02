@@ -1,7 +1,9 @@
 package com.danydandy.SalonSpa.config;
 
+import com.danydandy.SalonSpa.domain.ports.in.SubscriptionUseCase;
 import com.danydandy.SalonSpa.infrastructure.security.JwtAuthenticationFilter;
 import com.danydandy.SalonSpa.infrastructure.security.JwtService;
+import com.danydandy.SalonSpa.infrastructure.security.SubscriptionAccessFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,7 +28,11 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http, JwtAuthenticationFilter jwtFilter) {
+    public SecurityWebFilterChain securityWebFilterChain(
+            ServerHttpSecurity http,
+            JwtAuthenticationFilter jwtFilter,
+            SubscriptionUseCase subscriptionUseCase
+    ) {
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
@@ -73,10 +79,14 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.DELETE, "/api/appointments/**").hasAnyRole("ADMIN_USER", "SUPER_ADMIN")
                         .pathMatchers(HttpMethod.POST, "/api/sales/**").hasAnyRole("ADMIN_USER", "SUPER_ADMIN")
                         .pathMatchers(HttpMethod.PUT, "/api/sales/**").hasAnyRole("ADMIN_USER", "SUPER_ADMIN")
+                        .pathMatchers("/api/subscriptions/**").hasRole("SUPER_ADMIN")
                         .pathMatchers("/api/**").authenticated()
                         .anyExchange().authenticated()
                 )
                 .addFilterAt(jwtFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+                // After authorization: unauthenticated/forbidden requests are answered first; this one blocks salons
+                // with no active subscription and routes of features their plan does not include.
+                .addFilterAfter(new SubscriptionAccessFilter(subscriptionUseCase), SecurityWebFiltersOrder.AUTHORIZATION)
                 .build();
     }
 }

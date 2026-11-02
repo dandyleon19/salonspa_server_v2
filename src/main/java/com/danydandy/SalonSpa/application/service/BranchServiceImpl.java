@@ -8,6 +8,7 @@ import com.danydandy.SalonSpa.domain.exception.NotFoundException;
 import com.danydandy.SalonSpa.domain.model.AuthUser;
 import com.danydandy.SalonSpa.domain.model.Branch;
 import com.danydandy.SalonSpa.domain.ports.in.BranchUseCase;
+import com.danydandy.SalonSpa.domain.ports.in.SubscriptionUseCase;
 import com.danydandy.SalonSpa.domain.ports.out.BranchRepositoryPort;
 import com.danydandy.SalonSpa.domain.ports.out.SalonRepositoryPort;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +20,22 @@ public class BranchServiceImpl implements BranchUseCase {
 
     private final BranchRepositoryPort branchRepositoryPort;
     private final SalonRepositoryPort salonRepositoryPort;
+    private final SubscriptionUseCase subscriptionUseCase;
 
     @Override
     public Mono<Branch> create(Branch branch) {
         return SecurityHelper.currentUser()
                 .flatMap(authUser -> resolveSalonId(branch, authUser))
+                .flatMap(this::requireBranchCapacity)
                 .flatMap(branchRepositoryPort::save);
+    }
+
+    /** The salon's plan caps how many branches it can have. */
+    private Mono<Branch> requireBranchCapacity(Branch branch) {
+        return branchRepositoryPort.countBySalonId(branch.getSalonId(), null)
+                .flatMap(branches -> subscriptionUseCase.requireWithinLimit(
+                        branch.getSalonId(), SubscriptionUseCase.LIMIT_BRANCHES, branches))
+                .thenReturn(branch);
     }
 
     private Mono<Branch> resolveSalonId(Branch branch, AuthUser authUser) {

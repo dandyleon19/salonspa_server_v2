@@ -6,11 +6,13 @@ import com.danydandy.SalonSpa.domain.ports.out.*;
 import com.danydandy.SalonSpa.infrastructure.adapter.out.mapper.*;
 import com.danydandy.SalonSpa.infrastructure.adapter.out.repository.*;
 import com.danydandy.SalonSpa.config.properties.JwtProperties;
+import com.danydandy.SalonSpa.config.properties.SubscriptionProperties;
 import com.danydandy.SalonSpa.infrastructure.security.JwtService;
 import com.danydandy.SalonSpa.infrastructure.storage.FileStorageService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
@@ -28,7 +30,8 @@ public class BeanConfig {
             RefreshTokenRepositoryPort refreshTokenRepositoryPort,
             PasswordEncoder passwordEncoder,
             JwtService jwtService,
-            JwtProperties jwtProperties
+            JwtProperties jwtProperties,
+            SubscriptionUseCase subscriptionUseCase
     ) {
         return new AuthServiceImpl(
                 userRepositoryPort,
@@ -36,13 +39,32 @@ public class BeanConfig {
                 refreshTokenRepositoryPort,
                 passwordEncoder,
                 jwtService,
-                jwtProperties
+                jwtProperties,
+                subscriptionUseCase
         );
     }
 
     @Bean
-    public SalonUseCase salonUseCase(SalonRepositoryPort salonRepositoryPort, BranchRepositoryPort branchRepositoryPort) {
-        return new SalonServiceImpl(salonRepositoryPort, branchRepositoryPort);
+    public SubscriptionRepositoryPort subscriptionRepositoryPort(DatabaseClient databaseClient) {
+        return new SubscriptionRepositoryAdapter(databaseClient);
+    }
+
+    @Bean
+    public SubscriptionUseCase subscriptionUseCase(
+            SubscriptionRepositoryPort subscriptionRepositoryPort,
+            SalonRepositoryPort salonRepositoryPort,
+            SubscriptionProperties subscriptionProperties
+    ) {
+        return new SubscriptionServiceImpl(subscriptionRepositoryPort, salonRepositoryPort, subscriptionProperties);
+    }
+
+    @Bean
+    public SalonUseCase salonUseCase(
+            SalonRepositoryPort salonRepositoryPort,
+            BranchRepositoryPort branchRepositoryPort,
+            SubscriptionUseCase subscriptionUseCase
+    ) {
+        return new SalonServiceImpl(salonRepositoryPort, branchRepositoryPort, subscriptionUseCase);
     }
 
     @Bean
@@ -69,8 +91,12 @@ public class BeanConfig {
     }
 
     @Bean
-    public BranchUseCase branchUseCase(BranchRepositoryPort branchRepositoryPort, SalonRepositoryPort salonRepositoryPort) {
-        return new BranchServiceImpl(branchRepositoryPort, salonRepositoryPort);
+    public BranchUseCase branchUseCase(
+            BranchRepositoryPort branchRepositoryPort,
+            SalonRepositoryPort salonRepositoryPort,
+            SubscriptionUseCase subscriptionUseCase
+    ) {
+        return new BranchServiceImpl(branchRepositoryPort, salonRepositoryPort, subscriptionUseCase);
     }
 
     @Bean

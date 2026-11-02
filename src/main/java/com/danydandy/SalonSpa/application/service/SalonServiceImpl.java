@@ -5,6 +5,7 @@ import com.danydandy.SalonSpa.application.security.SecurityHelper;
 import com.danydandy.SalonSpa.domain.exception.NotFoundException;
 import com.danydandy.SalonSpa.domain.model.Salon;
 import com.danydandy.SalonSpa.domain.ports.in.SalonUseCase;
+import com.danydandy.SalonSpa.domain.ports.in.SubscriptionUseCase;
 import com.danydandy.SalonSpa.domain.ports.out.BranchRepositoryPort;
 import com.danydandy.SalonSpa.domain.ports.out.SalonRepositoryPort;
 import lombok.RequiredArgsConstructor;
@@ -17,10 +18,13 @@ public class SalonServiceImpl implements SalonUseCase {
 
     private final SalonRepositoryPort salonRepositoryPort;
     private final BranchRepositoryPort branchRepositoryPort;
+    private final SubscriptionUseCase subscriptionUseCase;
 
     @Override
     public Mono<Salon> create(Salon salon) {
-        return salonRepositoryPort.save(salon);
+        // A new salon starts its free trial right away.
+        return salonRepositoryPort.save(salon)
+                .flatMap(saved -> subscriptionUseCase.startTrial(saved.getId()).thenReturn(saved));
     }
 
     @Override

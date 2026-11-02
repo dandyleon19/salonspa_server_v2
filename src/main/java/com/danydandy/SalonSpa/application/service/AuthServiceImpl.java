@@ -13,6 +13,7 @@ import com.danydandy.SalonSpa.domain.model.Role;
 import com.danydandy.SalonSpa.domain.model.Salon;
 import com.danydandy.SalonSpa.domain.model.User;
 import com.danydandy.SalonSpa.domain.ports.in.AuthUseCase;
+import com.danydandy.SalonSpa.domain.ports.in.SubscriptionUseCase;
 import com.danydandy.SalonSpa.domain.ports.out.RefreshTokenRepositoryPort;
 import com.danydandy.SalonSpa.domain.ports.out.SalonRepositoryPort;
 import com.danydandy.SalonSpa.domain.ports.out.UserRepositoryPort;
@@ -35,6 +36,7 @@ public class AuthServiceImpl implements AuthUseCase {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final JwtProperties jwtProperties;
+    private final SubscriptionUseCase subscriptionUseCase;
 
     @Override
     public Mono<User> register(User user) {
@@ -48,7 +50,16 @@ public class AuthServiceImpl implements AuthUseCase {
                 .switchIfEmpty(Mono.error(new UnauthorizedException("Authentication required")))
                 .flatMap(authUser -> validateRegisterRole(user.getRole())
                         .then(resolveSalonId(user, authUser)))
+                .flatMap(this::requireUserCapacity)
                 .flatMap(userRepositoryPort::save);
+    }
+
+    /** The salon's plan caps how many active users it can have. */
+    private Mono<User> requireUserCapacity(User user) {
+        return userRepositoryPort.countBySalonId(user.getSalonId(), true, null, null)
+                .flatMap(activeUsers -> subscriptionUseCase.requireWithinLimit(
+                        user.getSalonId(), SubscriptionUseCase.LIMIT_USERS, activeUsers))
+                .thenReturn(user);
     }
 
     private Mono<Void> validateRegisterRole(Role role) {
