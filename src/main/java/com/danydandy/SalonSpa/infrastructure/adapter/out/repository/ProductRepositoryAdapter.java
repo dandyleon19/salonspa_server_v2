@@ -49,8 +49,8 @@ public class ProductRepositoryAdapter implements ProductRepositoryPort {
     }
 
     @Override
-    public Mono<Long> countBySalonId(Long salonId) {
-        return productRepository.countBySalonId(salonId);
+    public Mono<Long> countBySalonId(Long salonId, String search) {
+        return productRepository.countFilteredBySalonId(salonId, search);
     }
 
     @Override
