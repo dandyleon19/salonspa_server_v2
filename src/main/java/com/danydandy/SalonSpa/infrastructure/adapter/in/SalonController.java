@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,9 +42,10 @@ public class SalonController {
     @GetMapping
     public Mono<ResponseEntity<PageResponse<SalonResponse>>> getAll(
             @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "20") @Positive @Max(100) int size
+            @RequestParam(defaultValue = "20") @Positive @Max(100) int size,
+            @RequestParam(required = false) @Size(max = 255) String search
     ) {
-        return salonUseCase.findPage(page, size)
+        return salonUseCase.findPage(page, size, search)
                 .map(pageResponse -> PageResponse.of(
                         pageResponse.content().stream().map(salonMapper::toResponse).toList(),
                         pageResponse.page(),

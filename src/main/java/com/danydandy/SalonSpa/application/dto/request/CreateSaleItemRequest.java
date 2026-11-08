@@ -15,24 +15,24 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class CreateSaleItemRequest {
 
-    @Positive(message = "Service id must be positive")
+    @Positive(message = "El servicio no es válido")
     private Long serviceId;
 
-    @Positive(message = "Product id must be positive")
+    @Positive(message = "El producto no es válido")
     private Long productId;
 
-    @Positive(message = "User id must be positive")
+    @Positive(message = "El profesional no es válido")
     private Long userId;
 
-    @Positive(message = "Appointment id must be positive")
+    @Positive(message = "La cita no es válida")
     private Long appointmentId;
 
-    @Positive(message = "Quantity must be positive")
+    @Positive(message = "La cantidad debe ser mayor a 0")
     private Integer quantity;
 
-    @PositiveOrZero(message = "Unit price must be zero or positive")
+    @PositiveOrZero(message = "El precio unitario no puede ser negativo")
     private BigDecimal unitPrice;
 
-    @PositiveOrZero(message = "Discount amount must be zero or positive")
+    @PositiveOrZero(message = "El descuento no puede ser negativo")
     private BigDecimal discountAmount;
 }

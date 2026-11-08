@@ -2,6 +2,7 @@ package com.danydandy.SalonSpa.application.service;
 
 import com.danydandy.SalonSpa.application.dto.response.PageResponse;
 import com.danydandy.SalonSpa.application.security.SecurityHelper;
+import com.danydandy.SalonSpa.application.util.SearchHelper;
 import com.danydandy.SalonSpa.domain.exception.NotFoundException;
 import com.danydandy.SalonSpa.domain.model.Product;
 import com.danydandy.SalonSpa.domain.ports.in.ProductUseCase;
@@ -26,13 +27,14 @@ public class ProductServiceImpl implements ProductUseCase {
     }
 
     @Override
-    public Mono<PageResponse<Product>> findPage(int page, int size) {
+    public Mono<PageResponse<Product>> findPage(int page, int size, String search) {
+        String searchFilter = SearchHelper.toLikePattern(search);
         return SecurityHelper.currentUser()
                 .flatMap(authUser -> {
                     if (SecurityHelper.isSuperAdmin(authUser)) {
-                        return paginateAll(page, size);
+                        return paginateAll(page, size, searchFilter);
                     }
-                    return paginateBySalonId(authUser.getSalonId(), page, size);
+                    return paginateBySalonId(authUser.getSalonId(), page, size, searchFilter);
                 });
     }
 
@@ -84,17 +86,17 @@ public class ProductServiceImpl implements ProductUseCase {
                                 .then(fileStorageService.deleteProductImage(id))));
     }
 
-    private Mono<PageResponse<Product>> paginateAll(int page, int size) {
+    private Mono<PageResponse<Product>> paginateAll(int page, int size, String search) {
         return Mono.zip(
-                productRepositoryPort.countAll(),
-                productRepositoryPort.findAll(page, size).collectList()
+                productRepositoryPort.countAll(search),
+                productRepositoryPort.findAll(page, size, search).collectList()
         ).map(tuple -> PageResponse.of(tuple.getT2(), page, size, tuple.getT1()));
     }
 
-    private Mono<PageResponse<Product>> paginateBySalonId(Long salonId, int page, int size) {
+    private Mono<PageResponse<Product>> paginateBySalonId(Long salonId, int page, int size, String search) {
         return Mono.zip(
-                productRepositoryPort.countBySalonId(salonId),
-                productRepositoryPort.findBySalonId(salonId, page, size).collectList()
+                productRepositoryPort.countBySalonId(salonId, search),
+                productRepositoryPort.findBySalonId(salonId, page, size, search).collectList()
         ).map(tuple -> PageResponse.of(tuple.getT2(), page, size, tuple.getT1()));
     }
 }

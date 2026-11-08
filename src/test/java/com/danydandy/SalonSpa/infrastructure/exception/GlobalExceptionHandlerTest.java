@@ -38,7 +38,7 @@ class GlobalExceptionHandlerTest {
                 .expectBody()
                 .jsonPath("$.status").isEqualTo(404)
                 .jsonPath("$.code").isEqualTo("NOT_FOUND")
-                .jsonPath("$.message").isEqualTo("Client not found with id: 99")
+                .jsonPath("$.message").isEqualTo("No se encontró el cliente con id 99")
                 .jsonPath("$.path").isEqualTo("/test/not-found");
     }
 

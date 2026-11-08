@@ -25,20 +25,20 @@ public class ProductStockMovementServiceImpl implements ProductStockMovementUseC
     @Override
     public Mono<ProductStockMovement> create(Long productId, StockMovementType movementType, Integer quantityDelta, String reason) {
         if (quantityDelta == null || quantityDelta == 0) {
-            return Mono.error(new BadRequestException("Quantity delta must not be zero"));
+            return Mono.error(new BadRequestException("La cantidad no puede ser 0"));
         }
         if (movementType == StockMovementType.RESTOCK && quantityDelta <= 0) {
-            return Mono.error(new BadRequestException("Restock quantity must be positive"));
+            return Mono.error(new BadRequestException("La cantidad a reponer debe ser mayor a 0"));
         }
         if (movementType != StockMovementType.RESTOCK && movementType != StockMovementType.ADJUSTMENT) {
-            return Mono.error(new BadRequestException("Only RESTOCK or ADJUSTMENT can be recorded manually"));
+            return Mono.error(new BadRequestException("Solo se puede registrar una reposición o un ajuste de forma manual"));
         }
 
         return SecurityHelper.currentUser()
                 .flatMap(authUser -> loadProduct(productId, authUser)
                         .flatMap(product -> productRepositoryPort.applyStockDelta(productId, quantityDelta)
                                 .switchIfEmpty(Mono.error(new BadRequestException(
-                                        "Resulting stock cannot be negative")))
+                                        "El stock resultante no puede ser negativo")))
                                 .flatMap(resultingStock -> movementRepositoryPort.save(ProductStockMovement.builder()
                                         .productId(productId)
                                         .movementType(movementType)

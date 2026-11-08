@@ -13,11 +13,11 @@ import lombok.Setter;
 @AllArgsConstructor
 public class BootstrapRequest {
 
-    @NotNull(message = "Salon data is required")
+    @NotNull(message = "Faltan los datos del salón")
     @Valid
     private CreateSalonRequest salon;
 
-    @NotNull(message = "Admin user data is required")
+    @NotNull(message = "Faltan los datos del usuario administrador")
     @Valid
     private CreateUserRequest admin;
 }

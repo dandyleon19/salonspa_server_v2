@@ -17,22 +17,22 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class CreateClientRequest {
 
-    @NotBlank(message = "First name is required")
-    @Size(max = 100, message = "First name must be at most 100 characters")
+    @NotBlank(message = "Los nombres son obligatorios")
+    @Size(max = 100, message = "Los nombres admiten como máximo 100 caracteres")
     private String firstName;
 
-    @NotBlank(message = "Last name is required")
-    @Size(max = 100, message = "Last name must be at most 100 characters")
+    @NotBlank(message = "Los apellidos son obligatorios")
+    @Size(max = 100, message = "Los apellidos admiten como máximo 100 caracteres")
     private String lastName;
 
-    @Size(max = 20, message = "Document number must be at most 20 characters")
+    @Size(max = 20, message = "El número de documento admite como máximo 20 caracteres")
     private String documentNumber;
 
-    @Size(max = 20, message = "Phone must be at most 20 characters")
+    @Size(max = 20, message = "El teléfono admite como máximo 20 caracteres")
     private String phone;
 
-    @Email(message = "Email must be valid")
-    @Size(max = 100, message = "Email must be at most 100 characters")
+    @Email(message = "El correo no es válido")
+    @Size(max = 100, message = "El correo admite como máximo 100 caracteres")
     private String email;
 
     private LocalDate birthDate;

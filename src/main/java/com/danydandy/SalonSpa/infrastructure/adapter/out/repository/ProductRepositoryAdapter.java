@@ -21,14 +21,14 @@ public class ProductRepositoryAdapter implements ProductRepositoryPort {
     }
 
     @Override
-    public Flux<Product> findAll(int page, int size) {
-        return productRepository.findAllByOrderByCreatedAtAscIdAsc(PageRequest.of(page, size))
+    public Flux<Product> findAll(int page, int size, String search) {
+        return productRepository.findPage(search, size, (long) page * size)
                 .map(productMapper::toDomain);
     }
 
     @Override
-    public Mono<Long> countAll() {
-        return productRepository.count();
+    public Mono<Long> countAll(String search) {
+        return productRepository.countFiltered(search);
     }
 
     @Override
@@ -43,8 +43,8 @@ public class ProductRepositoryAdapter implements ProductRepositoryPort {
     }
 
     @Override
-    public Flux<Product> findBySalonId(Long salonId, int page, int size) {
-        return productRepository.findBySalonIdOrderByCreatedAtAscIdAsc(salonId, PageRequest.of(page, size))
+    public Flux<Product> findBySalonId(Long salonId, int page, int size, String search) {
+        return productRepository.findPageBySalonId(salonId, search, size, (long) page * size)
                 .map(productMapper::toDomain);
     }
 

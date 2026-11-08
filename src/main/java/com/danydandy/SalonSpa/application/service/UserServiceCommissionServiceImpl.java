@@ -97,7 +97,7 @@ public class UserServiceCommissionServiceImpl implements UserServiceCommissionUs
                 .flatMap(service -> {
                     if (user.getSalonId() == null || !user.getSalonId().equals(service.getSalonId())) {
                         return Mono.error(new BadRequestException(
-                                "Service does not belong to the same salon as the user"));
+                                "El servicio no pertenece al mismo salón que el profesional"));
                     }
                     return Mono.just(user);
                 });
@@ -123,10 +123,10 @@ public class UserServiceCommissionServiceImpl implements UserServiceCommissionUs
 
     private void validateCommissionPercentage(Double commissionPercentage) {
         if (commissionPercentage == null) {
-            throw new BadRequestException("Commission percentage is required");
+            throw new BadRequestException("El porcentaje de comisión es obligatorio");
         }
         if (commissionPercentage < 0 || commissionPercentage > 100) {
-            throw new BadRequestException("Commission percentage must be between 0 and 100");
+            throw new BadRequestException("El porcentaje de comisión debe estar entre 0 y 100");
         }
     }
 
@@ -135,10 +135,10 @@ public class UserServiceCommissionServiceImpl implements UserServiceCommissionUs
         for (UserServiceCommission commission : commissions) {
             validateCommissionPercentage(commission.getCommissionPercentage());
             if (commission.getServiceId() == null) {
-                throw new BadRequestException("Service id is required");
+                throw new BadRequestException("El servicio es obligatorio");
             }
             if (!serviceIds.add(commission.getServiceId())) {
-                throw new BadRequestException("Duplicate service id in commissions list: " + commission.getServiceId());
+                throw new BadRequestException("Servicio repetido en la lista de comisiones: " + commission.getServiceId());
             }
         }
     }

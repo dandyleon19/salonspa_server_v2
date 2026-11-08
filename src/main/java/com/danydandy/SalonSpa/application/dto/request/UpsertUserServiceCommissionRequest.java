@@ -14,8 +14,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class UpsertUserServiceCommissionRequest {
 
-    @NotNull(message = "Commission percentage is required")
-    @DecimalMin(value = "0.0", message = "Commission percentage must be at least 0")
-    @DecimalMax(value = "100.0", message = "Commission percentage must be at most 100")
+    @NotNull(message = "El porcentaje de comisión es obligatorio")
+    @DecimalMin(value = "0.0", message = "El porcentaje de comisión no puede ser menor a 0")
+    @DecimalMax(value = "100.0", message = "El porcentaje de comisión no puede superar 100")
     private Double commissionPercentage;
 }

@@ -6,12 +6,12 @@ import reactor.core.publisher.Mono;
 
 public interface ProductRepositoryPort {
     Mono<Product> save(Product product);
-    Flux<Product> findAll(int page, int size);
-    Mono<Long> countAll();
+    Flux<Product> findAll(int page, int size, String search);
+    Mono<Long> countAll(String search);
     Mono<Product> findById(Long id);
     Mono<Void> deleteById(Long id);
-    Flux<Product> findBySalonId(Long salonId, int page, int size);
-    Mono<Long> countBySalonId(Long salonId);
+    Flux<Product> findBySalonId(Long salonId, int page, int size, String search);
+    Mono<Long> countBySalonId(Long salonId, String search);
     Flux<Product> findByCategoryId(Long id);
     Mono<Integer> applyStockDelta(Long id, Integer delta);
 }

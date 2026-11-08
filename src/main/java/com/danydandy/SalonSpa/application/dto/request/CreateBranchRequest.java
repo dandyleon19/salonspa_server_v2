@@ -13,15 +13,15 @@ import lombok.Setter;
 @AllArgsConstructor
 public class CreateBranchRequest {
 
-    @Size(max = 50, message = "Name must be at most 50 characters")
+    @Size(max = 50, message = "El nombre admite como máximo 50 caracteres")
     private String name;
 
-    @Size(max = 100, message = "Address must be at most 100 characters")
+    @Size(max = 100, message = "La dirección admite como máximo 100 caracteres")
     private String address;
 
-    @Size(max = 100, message = "City must be at most 100 characters")
+    @Size(max = 100, message = "La ciudad admite como máximo 100 caracteres")
     private String city;
 
-    @Positive(message = "Salon id must be positive")
+    @Positive(message = "El salón no es válido")
     private Long salonId;
 }

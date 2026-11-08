@@ -51,13 +51,13 @@ public class SaleServiceImpl implements SaleUseCase {
                                     BigDecimal discountAmount = normalizeMoney(sale.getDiscountAmount());
                                     if (discountAmount.compareTo(subtotal) > 0) {
                                         return Mono.error(new BadRequestException(
-                                                "Discount amount cannot exceed subtotal"));
+                                                "El descuento no puede superar el subtotal"));
                                     }
                                     BigDecimal totalAmount = subtotal.subtract(discountAmount);
                                     BigDecimal amountPaid = sumPayments(payments);
                                     if (amountPaid.compareTo(totalAmount) > 0) {
                                         return Mono.error(new BadRequestException(
-                                                "Total payments cannot exceed sale total"));
+                                                "La suma de los pagos no puede superar el total de la venta"));
                                     }
 
                                     sale.setSalonId(salonId);
@@ -106,12 +106,12 @@ public class SaleServiceImpl implements SaleUseCase {
                 .flatMap(authUser -> loadWithTenantCheck(saleId, authUser)
                         .flatMap(sale -> {
                             if (sale.getStatus() == SaleStatus.CANCELLED) {
-                                return Mono.error(new BadRequestException("Cannot add payments to a cancelled sale"));
+                                return Mono.error(new BadRequestException("No se pueden agregar pagos a una venta cancelada"));
                             }
                             BigDecimal remaining = sale.getTotalAmount().subtract(sale.getAmountPaid());
                             if (payment.getAmount().compareTo(remaining) > 0) {
                                 return Mono.error(new BadRequestException(
-                                        "Payment amount exceeds remaining balance"));
+                                        "El pago supera el saldo pendiente"));
                             }
                             if (payment.getPaidAt() == null) {
                                 payment.setPaidAt(LocalDateTime.now());
@@ -133,7 +133,7 @@ public class SaleServiceImpl implements SaleUseCase {
                 .flatMap(authUser -> loadWithTenantCheck(id, authUser)
                         .flatMap(sale -> {
                             if (sale.getStatus() == SaleStatus.CANCELLED) {
-                                return Mono.error(new BadRequestException("Sale is already cancelled"));
+                                return Mono.error(new BadRequestException("La venta ya está cancelada"));
                             }
                             sale.setStatus(SaleStatus.CANCELLED);
                             sale.setCancelledAt(LocalDateTime.now());
@@ -162,10 +162,10 @@ public class SaleServiceImpl implements SaleUseCase {
     @Override
     public Mono<SaleReportResponse> getReport(LocalDate from, LocalDate to, Long branchId, Long userId) {
         if (from == null || to == null) {
-            return Mono.error(new BadRequestException("From and to dates are required"));
+            return Mono.error(new BadRequestException("Las fechas desde y hasta son obligatorias"));
         }
         if (from.isAfter(to)) {
-            return Mono.error(new BadRequestException("From date must be before or equal to to date"));
+            return Mono.error(new BadRequestException("La fecha desde no puede ser posterior a la fecha hasta"));
         }
 
         LocalDateTime periodStart = from.atStartOfDay();
@@ -224,7 +224,7 @@ public class SaleServiceImpl implements SaleUseCase {
 
     private Mono<Long> validateReferences(Sale sale, List<SaleItem> items, AuthUser authUser) {
         if (items == null || items.isEmpty()) {
-            return Mono.error(new BadRequestException("At least one sale item is required"));
+            return Mono.error(new BadRequestException("Se necesita al menos un ítem en la venta"));
         }
         return clientRepositoryPort.findById(sale.getClientId())
                 .switchIfEmpty(Mono.error(NotFoundException.forResource("Client", sale.getClientId())))
@@ -235,7 +235,7 @@ public class SaleServiceImpl implements SaleUseCase {
                         .flatMap(branch -> {
                             if (!client.getSalonId().equals(branch.getSalonId())) {
                                 return Mono.error(new BadRequestException(
-                                        "Branch does not belong to the same salon as the client"));
+                                        "La sucursal no pertenece al mismo salón que el cliente"));
                             }
                             return Mono.just(client.getSalonId());
                         }))
@@ -253,7 +253,7 @@ public class SaleServiceImpl implements SaleUseCase {
                         return Mono.error(NotFoundException.forResource("Appointment", appointmentId));
                     }
                     if (!clientId.equals(appointment.getClientId())) {
-                        return Mono.error(new BadRequestException("Appointment does not belong to the same client"));
+                        return Mono.error(new BadRequestException("La cita no pertenece al mismo cliente"));
                     }
                     return Mono.just(salonId);
                 });
@@ -267,7 +267,7 @@ public class SaleServiceImpl implements SaleUseCase {
                     boolean hasProduct = item.getProductId() != null;
                     if (hasService == hasProduct) {
                         return Mono.<SaleItem>error(new BadRequestException(
-                                "Each sale item must reference exactly one of serviceId or productId"));
+                                "Cada ítem de la venta debe ser un servicio o un producto, no ambos"));
                     }
                     if (hasProduct) {
                         return buildProductLineItem(item, salonId, resultingStockByItem);
@@ -282,17 +282,17 @@ public class SaleServiceImpl implements SaleUseCase {
                 .switchIfEmpty(Mono.error(NotFoundException.forResource("Product", item.getProductId())))
                 .flatMap(product -> {
                     if (!salonId.equals(product.getSalonId())) {
-                        return Mono.error(new BadRequestException("Product does not belong to the same salon"));
+                        return Mono.error(new BadRequestException("El producto no pertenece al mismo salón"));
                     }
                     if (Boolean.FALSE.equals(product.getIsActive())) {
-                        return Mono.error(new BadRequestException("Product is not active: " + product.getName()));
+                        return Mono.error(new BadRequestException("El producto no está activo: " + product.getName()));
                     }
 
                     int quantity = item.getQuantity() != null && item.getQuantity() > 0
                             ? item.getQuantity() : 1;
                     if (product.getStockQuantity() == null || product.getStockQuantity() < quantity) {
                         return Mono.error(new BadRequestException(
-                                "Insufficient stock for product: " + product.getName()));
+                                "Stock insuficiente del producto: " + product.getName()));
                     }
 
                     BigDecimal unitPrice = item.getUnitPrice() != null
@@ -302,13 +302,13 @@ public class SaleServiceImpl implements SaleUseCase {
                     BigDecimal lineSubtotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
                     if (lineDiscount.compareTo(lineSubtotal) > 0) {
                         return Mono.error(new BadRequestException(
-                                "Item discount cannot exceed line subtotal for product " + product.getName()));
+                                "El descuento del ítem no puede superar su subtotal en el producto " + product.getName()));
                     }
                     BigDecimal lineTotal = lineSubtotal.subtract(lineDiscount);
 
                     return productRepositoryPort.applyStockDelta(product.getId(), -quantity)
                             .switchIfEmpty(Mono.error(new BadRequestException(
-                                    "Insufficient stock for product: " + product.getName())))
+                                    "Stock insuficiente del producto: " + product.getName())))
                             .map(resultingStock -> {
                                 SaleItem built = SaleItem.builder()
                                         .productId(product.getId())
@@ -327,7 +327,7 @@ public class SaleServiceImpl implements SaleUseCase {
 
     private Mono<SaleItem> buildServiceLineItem(SaleItem item, Long salonId, Long clientId) {
         if (item.getUserId() == null) {
-            return Mono.error(new BadRequestException("User id is required for service items"));
+            return Mono.error(new BadRequestException("Indica el profesional de cada servicio"));
         }
         return validateItemReferences(item, salonId, clientId)
                         .flatMap(service -> {
@@ -338,13 +338,13 @@ public class SaleServiceImpl implements SaleUseCase {
                                     : normalizeMoney(service.getPrice());
                             if (unitPrice == null) {
                                 return Mono.error(new BadRequestException(
-                                        "Unit price is required for service " + service.getId()));
+                                        "Falta el precio unitario del servicio " + service.getId()));
                             }
                             BigDecimal lineDiscount = normalizeMoney(item.getDiscountAmount());
                             BigDecimal lineSubtotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
                             if (lineDiscount.compareTo(lineSubtotal) > 0) {
                                 return Mono.error(new BadRequestException(
-                                        "Item discount cannot exceed line subtotal for service "
+                                        "El descuento del ítem no puede superar su subtotal en el servicio "
                                                 + service.getName()));
                             }
                             BigDecimal lineTotal = lineSubtotal.subtract(lineDiscount);
@@ -368,18 +368,18 @@ public class SaleServiceImpl implements SaleUseCase {
                 .switchIfEmpty(Mono.error(NotFoundException.forResource("User", item.getUserId())))
                 .flatMap(user -> {
                     if (!salonId.equals(user.getSalonId())) {
-                        return Mono.error(new BadRequestException("User does not belong to the same salon"));
+                        return Mono.error(new BadRequestException("El profesional no pertenece al mismo salón"));
                     }
                     return serviceRepositoryPort.findById(item.getServiceId())
                             .switchIfEmpty(Mono.error(NotFoundException.forResource("Service", item.getServiceId())))
                             .flatMap(service -> {
                                 if (!salonId.equals(service.getSalonId())) {
                                     return Mono.error(new BadRequestException(
-                                            "Service does not belong to the same salon"));
+                                            "El servicio no pertenece al mismo salón"));
                                 }
                                 if (Boolean.FALSE.equals(service.getIsActive())) {
                                     return Mono.error(new BadRequestException(
-                                            "Service is not active: " + service.getName()));
+                                            "El servicio no está activo: " + service.getName()));
                                 }
                                 return validateAppointment(item.getAppointmentId(), salonId, clientId)
                                         .thenReturn(service);

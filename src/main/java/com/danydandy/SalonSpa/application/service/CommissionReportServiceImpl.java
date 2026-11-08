@@ -29,10 +29,10 @@ public class CommissionReportServiceImpl implements CommissionReportUseCase {
     @Override
     public Mono<CommissionReportResponse> getReport(LocalDate from, LocalDate to, Long branchId, Long userId) {
         if (from == null || to == null) {
-            return Mono.error(new BadRequestException("From and to dates are required"));
+            return Mono.error(new BadRequestException("Las fechas desde y hasta son obligatorias"));
         }
         if (from.isAfter(to)) {
-            return Mono.error(new BadRequestException("From date must be before or equal to to date"));
+            return Mono.error(new BadRequestException("La fecha desde no puede ser posterior a la fecha hasta"));
         }
 
         LocalDateTime periodStart = from.atStartOfDay();

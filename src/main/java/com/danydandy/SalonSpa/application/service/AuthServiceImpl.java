@@ -47,7 +47,7 @@ public class AuthServiceImpl implements AuthUseCase {
             user.setRole(Role.STAFF_USER);
         }
         return SecurityHelper.currentUser()
-                .switchIfEmpty(Mono.error(new UnauthorizedException("Authentication required")))
+                .switchIfEmpty(Mono.error(new UnauthorizedException("Inicia sesión para continuar")))
                 .flatMap(authUser -> validateRegisterRole(user.getRole())
                         .then(resolveSalonId(user, authUser)))
                 .flatMap(this::requireUserCapacity)
@@ -64,7 +64,7 @@ public class AuthServiceImpl implements AuthUseCase {
 
     private Mono<Void> validateRegisterRole(Role role) {
         if (role == Role.SUPER_ADMIN) {
-            return Mono.error(new BadRequestException("Cannot register a SUPER_ADMIN user"));
+            return Mono.error(new BadRequestException("No se puede registrar un super administrador"));
         }
         return Mono.empty();
     }
@@ -72,7 +72,7 @@ public class AuthServiceImpl implements AuthUseCase {
     private Mono<User> resolveSalonId(User user, AuthUser authUser) {
         if (SecurityHelper.isSuperAdmin(authUser)) {
             if (user.getSalonId() == null) {
-                return Mono.error(new BadRequestException("Salon id is required when registering users as SUPER_ADMIN"));
+                return Mono.error(new BadRequestException("Indica el salón al que pertenecerá el usuario"));
             }
             return salonRepositoryPort.findById(user.getSalonId())
                     .switchIfEmpty(Mono.error(NotFoundException.forResource("Salon", user.getSalonId())))
@@ -85,11 +85,11 @@ public class AuthServiceImpl implements AuthUseCase {
     @Override
     public Mono<AuthResponse> login(String email, String password) {
         return userRepositoryPort.findByEmail(email)
-                .switchIfEmpty(Mono.error(new UnauthorizedException("Invalid email or password")))
+                .switchIfEmpty(Mono.error(new UnauthorizedException("Correo o contraseña incorrectos")))
                 .flatMap(user -> {
                     boolean matches = passwordEncoder.matches(password, user.getPassword());
                     if (!matches) {
-                        return Mono.error(new UnauthorizedException("Invalid email or password"));
+                        return Mono.error(new UnauthorizedException("Correo o contraseña incorrectos"));
                     }
 
                     return issueAuthResponse(user);
@@ -101,7 +101,7 @@ public class AuthServiceImpl implements AuthUseCase {
         return userRepositoryPort.countAll(null, null, null)
                 .flatMap(userCount -> {
                     if (userCount > 0) {
-                        return Mono.error(new ConflictException("System already initialized"));
+                        return Mono.error(new ConflictException("El sistema ya fue inicializado"));
                     }
                     return salonRepositoryPort.save(salon)
                             .flatMap(savedSalon -> {
@@ -158,6 +158,6 @@ public class AuthServiceImpl implements AuthUseCase {
     }
 
     private UnauthorizedException invalidRefreshToken() {
-        return new UnauthorizedException("Invalid or expired refresh token");
+        return new UnauthorizedException("La sesión expiró, vuelve a iniciar sesión");
     }
 }

@@ -40,7 +40,7 @@ public class ClientServiceImpl implements ClientUseCase {
         return SecurityHelper.currentUser()
                 .flatMap(authUser -> {
                     if (SecurityHelper.isSuperAdmin(authUser)) {
-                        return Mono.error(new ForbiddenException("Super admins do not manage clients"));
+                        return Mono.error(new ForbiddenException("El super administrador no gestiona clientes"));
                     }
                     return paginateBySalonId(authUser.getSalonId(), page, size, searchFilter);
                 });
@@ -51,7 +51,7 @@ public class ClientServiceImpl implements ClientUseCase {
         return SecurityHelper.currentUser()
                 .flatMap(authUser -> {
                     if (SecurityHelper.isSuperAdmin(authUser)) {
-                        return Mono.<Client>error(new ForbiddenException("Super admins do not manage clients"));
+                        return Mono.<Client>error(new ForbiddenException("El super administrador no gestiona clientes"));
                     }
                     return clientRepositoryPort.findById(id)
                             .switchIfEmpty(Mono.error(NotFoundException.forResource("Client", id)))
@@ -64,7 +64,7 @@ public class ClientServiceImpl implements ClientUseCase {
         return SecurityHelper.currentUser()
                 .flatMap(authUser -> {
                     if (SecurityHelper.isSuperAdmin(authUser)) {
-                        return Mono.<PageResponse<ClinicalRecord>>error(new ForbiddenException("Super admins do not manage clients"));
+                        return Mono.<PageResponse<ClinicalRecord>>error(new ForbiddenException("El super administrador no gestiona clientes"));
                     }
                     return clientRepositoryPort.findById(clientId)
                             .switchIfEmpty(Mono.error(NotFoundException.forResource("Client", clientId)))

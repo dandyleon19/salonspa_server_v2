@@ -18,27 +18,27 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class CreateAppointmentRequest {
 
-    @NotNull(message = "Client id is required")
-    @Positive(message = "Client id must be positive")
+    @NotNull(message = "El cliente es obligatorio")
+    @Positive(message = "El cliente no es válido")
     private Long clientId;
 
-    @NotNull(message = "User id is required")
-    @Positive(message = "User id must be positive")
+    @NotNull(message = "El profesional es obligatorio")
+    @Positive(message = "El profesional no es válido")
     private Long userId;
 
-    @NotNull(message = "Branch id is required")
-    @Positive(message = "Branch id must be positive")
+    @NotNull(message = "La sucursal es obligatoria")
+    @Positive(message = "La sucursal no es válida")
     private Long branchId;
 
-    @Positive(message = "Service id must be positive")
+    @Positive(message = "El servicio no es válido")
     private Long serviceId;
 
-    @NotNull(message = "Start at is required")
+    @NotNull(message = "La fecha y hora de inicio son obligatorias")
     private LocalDateTime startAt;
 
     private String notes;
 
-    @Positive(message = "Deposit amount must be positive")
+    @Positive(message = "El adelanto debe ser mayor a 0")
     private BigDecimal depositAmount;
 
     private PaymentMethod depositPaymentMethod;

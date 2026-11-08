@@ -15,18 +15,18 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class NextAppointmentRequest {
 
-    @NotNull(message = "User id is required")
-    @Positive(message = "User id must be positive")
+    @NotNull(message = "El profesional es obligatorio")
+    @Positive(message = "El profesional no es válido")
     private Long userId;
 
-    @NotNull(message = "Branch id is required")
-    @Positive(message = "Branch id must be positive")
+    @NotNull(message = "La sucursal es obligatoria")
+    @Positive(message = "La sucursal no es válida")
     private Long branchId;
 
-    @NotNull(message = "Start at is required")
+    @NotNull(message = "La fecha y hora de inicio son obligatorias")
     private LocalDateTime startAt;
 
-    @Positive(message = "Service id must be positive")
+    @Positive(message = "El servicio no es válido")
     private Long serviceId;
 
     private String notes;

@@ -73,8 +73,13 @@ public class BeanConfig {
     }
 
     @Bean
-    public UserUseCase userUseCase(UserRepositoryPort userRepositoryPort, SalonRepositoryPort salonRepositoryPort) {
-        return new UserService(userRepositoryPort, salonRepositoryPort);
+    public UserUseCase userUseCase(
+            UserRepositoryPort userRepositoryPort,
+            SalonRepositoryPort salonRepositoryPort,
+            RefreshTokenRepositoryPort refreshTokenRepositoryPort,
+            PasswordEncoder passwordEncoder
+    ) {
+        return new UserService(userRepositoryPort, salonRepositoryPort, refreshTokenRepositoryPort, passwordEncoder);
     }
 
     @Bean

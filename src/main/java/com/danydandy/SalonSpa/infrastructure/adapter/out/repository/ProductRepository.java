@@ -17,6 +17,56 @@ public interface ProductRepository extends R2dbcRepository<ProductEntity, Long> 
 
     Mono<Long> countBySalonId(Long salonId);
 
+    @Query("""
+            SELECT *
+            FROM products
+            WHERE (
+                :search IS NULL
+                OR name ILIKE :search
+                OR description ILIKE :search
+            )
+            ORDER BY created_at ASC, id ASC
+            LIMIT :limit OFFSET :offset
+            """)
+    Flux<ProductEntity> findPage(String search, int limit, long offset);
+
+    @Query("""
+            SELECT COUNT(*)
+            FROM products
+            WHERE (
+                :search IS NULL
+                OR name ILIKE :search
+                OR description ILIKE :search
+            )
+            """)
+    Mono<Long> countFiltered(String search);
+
+    @Query("""
+            SELECT *
+            FROM products
+            WHERE salon_id = :salonId
+              AND (
+                  :search IS NULL
+                  OR name ILIKE :search
+                  OR description ILIKE :search
+              )
+            ORDER BY created_at ASC, id ASC
+            LIMIT :limit OFFSET :offset
+            """)
+    Flux<ProductEntity> findPageBySalonId(Long salonId, String search, int limit, long offset);
+
+    @Query("""
+            SELECT COUNT(*)
+            FROM products
+            WHERE salon_id = :salonId
+              AND (
+                  :search IS NULL
+                  OR name ILIKE :search
+                  OR description ILIKE :search
+              )
+            """)
+    Mono<Long> countFilteredBySalonId(Long salonId, String search);
+
     /**
      * Atomically applies a delta (positive or negative) to a product's stock and returns the
      * resulting quantity. Not {@code @Modifying}: the RETURNING clause makes this a row-producing

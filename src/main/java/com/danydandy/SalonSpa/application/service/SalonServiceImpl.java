@@ -2,6 +2,7 @@ package com.danydandy.SalonSpa.application.service;
 
 import com.danydandy.SalonSpa.application.dto.response.PageResponse;
 import com.danydandy.SalonSpa.application.security.SecurityHelper;
+import com.danydandy.SalonSpa.application.util.SearchHelper;
 import com.danydandy.SalonSpa.domain.exception.NotFoundException;
 import com.danydandy.SalonSpa.domain.model.Salon;
 import com.danydandy.SalonSpa.domain.ports.in.SalonUseCase;
@@ -28,11 +29,12 @@ public class SalonServiceImpl implements SalonUseCase {
     }
 
     @Override
-    public Mono<PageResponse<Salon>> findPage(int page, int size) {
+    public Mono<PageResponse<Salon>> findPage(int page, int size, String search) {
+        String searchFilter = SearchHelper.toLikePattern(search);
         return SecurityHelper.currentUser()
                 .flatMap(authUser -> {
                     if (SecurityHelper.isSuperAdmin(authUser)) {
-                        return paginateAll(page, size);
+                        return paginateAll(page, size, searchFilter);
                     }
                     if (page > 0) {
                         return Mono.just(PageResponse.of(List.of(), page, size, 1L));
@@ -100,10 +102,10 @@ public class SalonServiceImpl implements SalonUseCase {
                 });
     }
 
-    private Mono<PageResponse<Salon>> paginateAll(int page, int size) {
+    private Mono<PageResponse<Salon>> paginateAll(int page, int size, String search) {
         return Mono.zip(
-                salonRepositoryPort.countAll(),
-                salonRepositoryPort.findAll(page, size)
+                salonRepositoryPort.countAll(search),
+                salonRepositoryPort.findAll(page, size, search)
                         .flatMap(this::enrichWithBranches)
                         .collectList()
         ).map(tuple -> PageResponse.of(tuple.getT2(), page, size, tuple.getT1()));

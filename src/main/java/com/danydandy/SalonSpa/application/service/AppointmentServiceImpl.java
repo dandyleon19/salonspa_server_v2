@@ -74,7 +74,7 @@ public class AppointmentServiceImpl implements AppointmentUseCase {
                     return countMono.flatMap(count -> {
                         if (count > MAX_CALENDAR_APPOINTMENTS) {
                             return Mono.error(new BadRequestException(
-                                    "Too many appointments in this period. Please filter by branch or professional."));
+                                    "Hay demasiadas citas en este periodo. Filtra por sucursal o profesional."));
                         }
                         Flux<Appointment> appointmentsFlux = SecurityHelper.isSuperAdmin(authUser)
                                 ? appointmentRepositoryPort.findByPeriod(branchId, userId, statusFilter, periodStart,
@@ -188,7 +188,7 @@ public class AppointmentServiceImpl implements AppointmentUseCase {
                         .switchIfEmpty(Mono.error(NotFoundException.forResource("User", userId)))
                         .flatMap(user -> {
                             if (!salonId.equals(user.getSalonId())) {
-                                return Mono.error(new BadRequestException("User does not belong to the same salon as the client"));
+                                return Mono.error(new BadRequestException("El profesional no pertenece al mismo salón que el cliente"));
                             }
                             return Mono.just(salonId);
                         }))
@@ -196,7 +196,7 @@ public class AppointmentServiceImpl implements AppointmentUseCase {
                         .switchIfEmpty(Mono.error(NotFoundException.forResource("Branch", branchId)))
                         .flatMap(branch -> {
                             if (!salonId.equals(branch.getSalonId())) {
-                                return Mono.error(new BadRequestException("Branch does not belong to the same salon as the client"));
+                                return Mono.error(new BadRequestException("La sucursal no pertenece al mismo salón que el cliente"));
                             }
                             return Mono.just(salonId);
                         }))
@@ -208,7 +208,7 @@ public class AppointmentServiceImpl implements AppointmentUseCase {
                             .switchIfEmpty(Mono.error(NotFoundException.forResource("Service", serviceId)))
                             .flatMap(service -> {
                                 if (!salonId.equals(service.getSalonId())) {
-                                    return Mono.error(new BadRequestException("Service does not belong to the same salon as the client"));
+                                    return Mono.error(new BadRequestException("El servicio no pertenece al mismo salón que el cliente"));
                                 }
                                 return Mono.just(salonId);
                             });
@@ -230,7 +230,7 @@ public class AppointmentServiceImpl implements AppointmentUseCase {
         return appointmentRepositoryPort.countOverlapping(userId, startAt, endAt, excludeId)
                 .flatMap(count -> {
                     if (count > 0) {
-                        return Mono.error(new ConflictException("The professional already has an appointment in that time slot"));
+                        return Mono.error(new ConflictException("El profesional ya tiene una cita activa en ese horario"));
                     }
                     return Mono.empty();
                 });

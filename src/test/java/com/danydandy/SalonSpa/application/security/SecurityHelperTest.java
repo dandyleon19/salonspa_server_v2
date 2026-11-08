@@ -36,7 +36,7 @@ class SecurityHelperTest {
                 SecurityHelper.requireSameSalon("entity", 99L, user, "Client", 1L)
         ).expectErrorSatisfies(error -> {
             assert error instanceof NotFoundException;
-            assert error.getMessage().equals("Client not found with id: 1");
+            assert error.getMessage().equals("No se encontró el cliente con id 1");
         }).verify();
     }
 

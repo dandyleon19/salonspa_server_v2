@@ -14,12 +14,12 @@ import lombok.Setter;
 @AllArgsConstructor
 public class CreateProductStockMovementRequest {
 
-    @NotNull(message = "Movement type is required")
+    @NotNull(message = "El tipo de movimiento es obligatorio")
     private StockMovementType movementType;
 
-    @NotNull(message = "Quantity delta is required")
+    @NotNull(message = "La cantidad es obligatoria")
     private Integer quantityDelta;
 
-    @Size(max = 255, message = "Reason must be at most 255 characters")
+    @Size(max = 255, message = "El motivo admite como máximo 255 caracteres")
     private String reason;
 }

@@ -14,27 +14,27 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class CreateProductRequest {
 
-    @NotNull(message = "Category id is required")
-    @Positive(message = "Category id must be positive")
+    @NotNull(message = "La categoría es obligatoria")
+    @Positive(message = "La categoría no es válida")
     private Long categoryId;
 
-    @NotBlank(message = "Name is required")
-    @Size(max = 150, message = "Name must be at most 150 characters")
+    @NotBlank(message = "El nombre es obligatorio")
+    @Size(max = 150, message = "El nombre admite como máximo 150 caracteres")
     private String name;
 
     private String description;
 
     private String longDescription;
 
-    @NotNull(message = "Price is required")
-    @DecimalMin(value = "0.0", inclusive = true, message = "Price must be zero or greater")
+    @NotNull(message = "El precio es obligatorio")
+    @DecimalMin(value = "0.0", inclusive = true, message = "El precio no puede ser negativo")
     private BigDecimal price;
 
-    @NotNull(message = "Stock quantity is required")
-    @PositiveOrZero(message = "Stock quantity must be zero or greater")
+    @NotNull(message = "El stock es obligatorio")
+    @PositiveOrZero(message = "El stock no puede ser negativo")
     private Integer stockQuantity;
 
-    @PositiveOrZero(message = "Low stock threshold must be zero or greater")
+    @PositiveOrZero(message = "La alerta de stock bajo no puede ser negativa")
     private Integer lowStockThreshold;
 
     private Boolean isActive;

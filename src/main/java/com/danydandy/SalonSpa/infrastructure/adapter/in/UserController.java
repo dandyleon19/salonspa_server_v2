@@ -1,5 +1,6 @@
 package com.danydandy.SalonSpa.infrastructure.adapter.in;
 
+import com.danydandy.SalonSpa.application.dto.request.ResetPasswordRequest;
 import com.danydandy.SalonSpa.application.dto.request.UpdateUserRequest;
 import com.danydandy.SalonSpa.application.dto.response.PageResponse;
 import com.danydandy.SalonSpa.application.dto.response.UserResponse;
@@ -61,6 +62,15 @@ public class UserController {
         return userUseCase.update(id, requestDtoMapper.toUser(request))
                 .map(userMapper::toResponse)
                 .map(ResponseEntity::ok);
+    }
+
+    @PutMapping("/{id}/password")
+    public Mono<ResponseEntity<Void>> resetPassword(
+            @PathVariable @Positive Long id,
+            @Valid @RequestBody ResetPasswordRequest request
+    ) {
+        return userUseCase.resetPassword(id, request.getPassword())
+                .then(Mono.just(ResponseEntity.noContent().build()));
     }
 
     @DeleteMapping("/{id}")

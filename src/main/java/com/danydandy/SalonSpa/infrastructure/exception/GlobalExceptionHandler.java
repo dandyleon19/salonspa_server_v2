@@ -31,7 +31,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(WebExchangeBindException.class)
     public Mono<ResponseEntity<ErrorResponse>> handleValidation(WebExchangeBindException ex, ServerWebExchange exchange) {
         String message = ex.getFieldErrors().stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                // The messages already say which field they are about ("El nombre es obligatorio").
+                .map(error -> error.getDefaultMessage())
                 .collect(Collectors.joining("; "));
         log.warn("Validation failed on {}: {}", exchange.getRequest().getPath().value(), message);
         return Mono.just(buildResponse(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", message, exchange));
@@ -53,13 +54,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     public Mono<ResponseEntity<ErrorResponse>> handleAuthentication(AuthenticationException ex, ServerWebExchange exchange) {
         log.warn("Authentication failed on {}: {}", exchange.getRequest().getPath().value(), ex.getMessage());
-        return Mono.just(buildResponse(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Authentication required", exchange));
+        return Mono.just(buildResponse(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Inicia sesión para continuar", exchange));
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public Mono<ResponseEntity<ErrorResponse>> handleAccessDenied(AccessDeniedException ex, ServerWebExchange exchange) {
         log.warn("Access denied on {}: {}", exchange.getRequest().getPath().value(), ex.getMessage());
-        return Mono.just(buildResponse(HttpStatus.FORBIDDEN, "FORBIDDEN", "Access denied", exchange));
+        return Mono.just(buildResponse(HttpStatus.FORBIDDEN, "FORBIDDEN", "Acceso denegado", exchange));
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
@@ -68,7 +69,7 @@ public class GlobalExceptionHandler {
         return Mono.just(buildResponse(
                 HttpStatus.CONFLICT,
                 "CONFLICT",
-                "The operation conflicts with existing data",
+                "La operación entra en conflicto con datos existentes",
                 exchange
         ));
     }
@@ -79,7 +80,7 @@ public class GlobalExceptionHandler {
         return Mono.just(buildResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "INTERNAL_ERROR",
-                "An unexpected error occurred",
+                "Ocurrió un error inesperado",
                 exchange
         ));
     }

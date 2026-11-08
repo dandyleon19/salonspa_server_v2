@@ -12,6 +12,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class SuspendSubscriptionRequest {
 
-    @Size(max = 300, message = "Reason must be at most 300 characters")
+    @Size(max = 300, message = "El motivo no puede superar los 300 caracteres")
     private String reason;
 }

@@ -75,7 +75,7 @@ public class SubscriptionController {
     ) {
         boolean noExpiry = Boolean.TRUE.equals(request.getNoExpiry());
         if (!noExpiry && request.getPaidUntil() == null) {
-            return Mono.error(new BadRequestException("paidUntil is required unless the plan has no expiry"));
+            return Mono.error(new BadRequestException("Indica hasta cuándo está pagado, o marca que el plan no vence"));
         }
         return subscriptionUseCase.activate(salonId, request.getPlanCode(), noExpiry ? null : request.getPaidUntil())
                 .map(SubscriptionResponse::from)

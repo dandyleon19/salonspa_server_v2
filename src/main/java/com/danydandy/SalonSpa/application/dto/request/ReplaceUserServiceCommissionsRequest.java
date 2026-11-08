@@ -19,7 +19,7 @@ import java.util.List;
 public class ReplaceUserServiceCommissionsRequest {
 
     @Valid
-    @NotNull(message = "Commissions list is required")
+    @NotNull(message = "Falta la lista de comisiones")
     private List<UserServiceCommissionItemRequest> commissions;
 
     @Getter
@@ -28,13 +28,13 @@ public class ReplaceUserServiceCommissionsRequest {
     @AllArgsConstructor
     public static class UserServiceCommissionItemRequest {
 
-        @NotNull(message = "Service id is required")
-        @Positive(message = "Service id must be positive")
+        @NotNull(message = "El servicio es obligatorio")
+        @Positive(message = "El servicio no es válido")
         private Long serviceId;
 
-        @NotNull(message = "Commission percentage is required")
-        @DecimalMin(value = "0.0", message = "Commission percentage must be at least 0")
-        @DecimalMax(value = "100.0", message = "Commission percentage must be at most 100")
+        @NotNull(message = "El porcentaje de comisión es obligatorio")
+        @DecimalMin(value = "0.0", message = "El porcentaje de comisión no puede ser menor a 0")
+        @DecimalMax(value = "100.0", message = "El porcentaje de comisión no puede superar 100")
         private Double commissionPercentage;
     }
 }

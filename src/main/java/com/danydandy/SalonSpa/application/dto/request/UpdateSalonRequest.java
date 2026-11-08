@@ -13,19 +13,19 @@ import lombok.Setter;
 @AllArgsConstructor
 public class UpdateSalonRequest {
 
-    @NotBlank(message = "Name is required")
-    @Size(max = 100, message = "Name must be at most 100 characters")
+    @NotBlank(message = "El nombre es obligatorio")
+    @Size(max = 100, message = "El nombre admite como máximo 100 caracteres")
     private String name;
 
-    @Size(max = 100, message = "Social reason must be at most 100 characters")
+    @Size(max = 100, message = "La razón social admite como máximo 100 caracteres")
     private String socialReason;
 
-    @Size(max = 100, message = "Fiscal address must be at most 100 characters")
+    @Size(max = 100, message = "La dirección fiscal admite como máximo 100 caracteres")
     private String fiscalAddress;
 
-    @Size(max = 20, message = "RUC number must be at most 20 characters")
+    @Size(max = 20, message = "El RUC admite como máximo 20 caracteres")
     private String rucNumber;
 
-    @Size(max = 20, message = "Phone must be at most 20 characters")
+    @Size(max = 20, message = "El teléfono admite como máximo 20 caracteres")
     private String phone;
 }

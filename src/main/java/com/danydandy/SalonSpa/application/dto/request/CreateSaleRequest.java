@@ -20,25 +20,25 @@ import java.util.List;
 @AllArgsConstructor
 public class CreateSaleRequest {
 
-    @NotNull(message = "Client id is required")
-    @Positive(message = "Client id must be positive")
+    @NotNull(message = "El cliente es obligatorio")
+    @Positive(message = "El cliente no es válido")
     private Long clientId;
 
-    @NotNull(message = "Branch id is required")
-    @Positive(message = "Branch id must be positive")
+    @NotNull(message = "La sucursal es obligatoria")
+    @Positive(message = "La sucursal no es válida")
     private Long branchId;
 
-    @Positive(message = "Appointment id must be positive")
+    @Positive(message = "La cita no es válida")
     private Long appointmentId;
 
-    @PositiveOrZero(message = "Discount amount must be zero or positive")
+    @PositiveOrZero(message = "El descuento no puede ser negativo")
     private BigDecimal discountAmount;
 
     private String notes;
 
     private LocalDateTime soldAt;
 
-    @NotEmpty(message = "At least one sale item is required")
+    @NotEmpty(message = "Se necesita al menos un ítem en la venta")
     @Valid
     private List<CreateSaleItemRequest> items;
 

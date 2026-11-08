@@ -15,8 +15,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class ActivateSubscriptionRequest {
 
-    @NotBlank(message = "Plan code is required")
-    @Size(max = 30, message = "Plan code must be at most 30 characters")
+    @NotBlank(message = "El plan es obligatorio")
+    @Size(max = 30, message = "El plan no puede superar los 30 caracteres")
     private String planCode;
 
     /** The day the salon is paid until (yyyy-MM-dd). Required unless {@code noExpiry} is true. */

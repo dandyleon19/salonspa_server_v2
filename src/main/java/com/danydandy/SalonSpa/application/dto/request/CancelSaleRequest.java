@@ -12,6 +12,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class CancelSaleRequest {
 
-    @Size(max = 500, message = "Cancellation reason must be at most 500 characters")
+    @Size(max = 500, message = "El motivo de cancelación admite como máximo 500 caracteres")
     private String reason;
 }

@@ -18,14 +18,14 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class CreateSalePaymentRequest {
 
-    @NotNull(message = "Amount is required")
-    @Positive(message = "Amount must be positive")
+    @NotNull(message = "El monto es obligatorio")
+    @Positive(message = "El monto debe ser mayor a 0")
     private BigDecimal amount;
 
-    @NotNull(message = "Payment method is required")
+    @NotNull(message = "El método de pago es obligatorio")
     private PaymentMethod paymentMethod;
 
-    @Size(max = 100, message = "Reference must be at most 100 characters")
+    @Size(max = 100, message = "La referencia admite como máximo 100 caracteres")
     private String reference;
 
     private LocalDateTime paidAt;

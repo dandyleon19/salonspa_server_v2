@@ -130,11 +130,11 @@ public class SubscriptionServiceImpl implements SubscriptionUseCase {
         if (paidUntil != null) {
             LocalDate today = LocalDate.now();
             if (paidUntil.isBefore(today)) {
-                return Mono.error(new BadRequestException("The paid-until date cannot be before today"));
+                return Mono.error(new BadRequestException("La fecha de pago no puede ser anterior a hoy"));
             }
             if (paidUntil.isAfter(today.plusYears(MAX_PAID_YEARS))) {
                 return Mono.error(new BadRequestException(
-                        "The paid-until date cannot be more than " + MAX_PAID_YEARS + " years away"));
+                        "La fecha de pago no puede estar a más de " + MAX_PAID_YEARS + " años"));
             }
         }
         return Mono.zip(loadStored(salonId), findPlan(planCode))
@@ -171,13 +171,13 @@ public class SubscriptionServiceImpl implements SubscriptionUseCase {
     @Override
     public Mono<SalonSubscription> extendTrial(Long salonId, int days) {
         if (days < 1) {
-            return Mono.error(new BadRequestException("Days must be at least 1"));
+            return Mono.error(new BadRequestException("Los días deben ser al menos 1"));
         }
         return loadStored(salonId).flatMap(stored -> {
             SalonSubscription current = withEffectiveState(stored);
             if (current.getStatus() == SubscriptionStatus.ACTIVE) {
                 return Mono.error(new ConflictException(
-                        "This salon has a paid plan running; use activate to extend it"));
+                        "Este salón tiene un plan pagado vigente: usa activar para extenderlo"));
             }
             SalonSubscription updated = copyOf(stored);
             updated.setStoredStatus(SubscriptionStatus.TRIAL);
@@ -211,12 +211,12 @@ public class SubscriptionServiceImpl implements SubscriptionUseCase {
     @Override
     public Mono<SalonSubscription> setTrialDays(Long salonId, int days) {
         if (days < 1 || days > MAX_TRIAL_DAYS) {
-            return Mono.error(new BadRequestException("Days must be between 1 and " + MAX_TRIAL_DAYS));
+            return Mono.error(new BadRequestException("Los días deben estar entre 1 y " + MAX_TRIAL_DAYS));
         }
         return loadStored(salonId).flatMap(stored -> {
             if (stored.getStoredStatus() != SubscriptionStatus.TRIAL) {
                 return Mono.error(new ConflictException(
-                        "Trial days can only be changed while the salon is on trial"));
+                        "Los días de prueba solo se pueden cambiar mientras el salón está en prueba"));
             }
             SalonSubscription updated = copyOf(stored);
             updated.setTrialDays(days);
@@ -285,7 +285,7 @@ public class SubscriptionServiceImpl implements SubscriptionUseCase {
 
     private Mono<Plan> findPlan(String planCode) {
         return subscriptionRepositoryPort.findPlanByCode(planCode == null ? "" : planCode.trim().toUpperCase())
-                .switchIfEmpty(Mono.error(new BadRequestException("Unknown plan: " + planCode)));
+                .switchIfEmpty(Mono.error(new BadRequestException("Plan desconocido: " + planCode)));
     }
 
     /** The stored subscription, from cache when fresh; a salon that has none starts its trial. */
@@ -336,7 +336,7 @@ public class SubscriptionServiceImpl implements SubscriptionUseCase {
     private Mono<Plan> findTrialPlan() {
         return subscriptionRepositoryPort.findPlanByCode(properties.trialPlanCode())
                 .switchIfEmpty(Mono.error(new ConflictException(
-                        "Trial plan '" + properties.trialPlanCode() + "' does not exist")));
+                        "El plan de prueba '" + properties.trialPlanCode() + "' no existe")));
     }
 
     /**

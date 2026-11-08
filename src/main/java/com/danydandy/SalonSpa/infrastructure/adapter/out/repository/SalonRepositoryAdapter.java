@@ -21,14 +21,14 @@ public class SalonRepositoryAdapter implements SalonRepositoryPort {
     }
 
     @Override
-    public Flux<Salon> findAll(int page, int size) {
-        return salonRepository.findAllByOrderByCreatedAtAscIdAsc(PageRequest.of(page, size))
+    public Flux<Salon> findAll(int page, int size, String search) {
+        return salonRepository.findPage(search, size, (long) page * size)
                 .map(salonMapper::toDomain);
     }
 
     @Override
-    public Mono<Long> countAll() {
-        return salonRepository.count();
+    public Mono<Long> countAll(String search) {
+        return salonRepository.countFiltered(search);
     }
 
     @Override

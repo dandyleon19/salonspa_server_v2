@@ -41,7 +41,7 @@ public class BranchServiceImpl implements BranchUseCase {
     private Mono<Branch> resolveSalonId(Branch branch, AuthUser authUser) {
         if (SecurityHelper.isSuperAdmin(authUser)) {
             if (branch.getSalonId() == null) {
-                return Mono.error(new BadRequestException("Salon id is required when creating branches as SUPER_ADMIN"));
+                return Mono.error(new BadRequestException("Indica el salón al que pertenecerá la sucursal"));
             }
             return salonRepositoryPort.findById(branch.getSalonId())
                     .switchIfEmpty(Mono.error(NotFoundException.forResource("Salon", branch.getSalonId())))

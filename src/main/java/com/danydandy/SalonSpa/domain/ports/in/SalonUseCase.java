@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono;
 public interface SalonUseCase {
 
     Mono<Salon> create(Salon salon);
-    Mono<PageResponse<Salon>> findPage(int page, int size);
+    Mono<PageResponse<Salon>> findPage(int page, int size, String search);
     Mono<Salon> findById(Long id);
     Mono<Salon> update(Long id, Salon salon);
     Mono<Salon> updateLogo(Long id, String logoUrl);

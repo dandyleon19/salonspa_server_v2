@@ -28,7 +28,7 @@ public final class SecurityHelper {
     public static Long resolveReportUserId(AuthUser authUser, Long requestedUserId) {
         if (isStaffUser(authUser)) {
             if (requestedUserId != null && !requestedUserId.equals(authUser.getUserId())) {
-                throw new ForbiddenException("Staff users can only view their own reports");
+                throw new ForbiddenException("Un trabajador solo puede ver sus propios reportes");
             }
             return authUser.getUserId();
         }

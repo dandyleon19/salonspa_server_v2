@@ -18,13 +18,13 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class UpdateAppointmentRequest {
 
-    @Positive(message = "User id must be positive")
+    @Positive(message = "El profesional no es válido")
     private Long userId;
 
-    @Positive(message = "Branch id must be positive")
+    @Positive(message = "La sucursal no es válida")
     private Long branchId;
 
-    @Positive(message = "Service id must be positive")
+    @Positive(message = "El servicio no es válido")
     private Long serviceId;
 
     private LocalDateTime startAt;
@@ -35,7 +35,7 @@ public class UpdateAppointmentRequest {
 
     private String cancellationReason;
 
-    @Positive(message = "Deposit amount must be positive")
+    @Positive(message = "El adelanto debe ser mayor a 0")
     private BigDecimal depositAmount;
 
     private PaymentMethod depositPaymentMethod;

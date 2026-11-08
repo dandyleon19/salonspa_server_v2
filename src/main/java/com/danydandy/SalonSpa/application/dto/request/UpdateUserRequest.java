@@ -13,25 +13,25 @@ import lombok.Setter;
 @AllArgsConstructor
 public class UpdateUserRequest {
 
-    @NotBlank(message = "First name is required")
-    @Size(max = 255, message = "First name must be at most 255 characters")
+    @NotBlank(message = "Los nombres son obligatorios")
+    @Size(max = 255, message = "Los nombres admiten como máximo 255 caracteres")
     private String firstName;
 
-    @NotBlank(message = "Last name is required")
-    @Size(max = 255, message = "Last name must be at most 255 characters")
+    @NotBlank(message = "Los apellidos son obligatorios")
+    @Size(max = 255, message = "Los apellidos admiten como máximo 255 caracteres")
     private String lastName;
 
-    @NotBlank(message = "Email is required")
-    @Email(message = "Email must be valid")
-    @Size(max = 255, message = "Email must be at most 255 characters")
+    @NotBlank(message = "El correo es obligatorio")
+    @Email(message = "El correo no es válido")
+    @Size(max = 255, message = "El correo admite como máximo 255 caracteres")
     private String email;
 
     private Boolean isActive;
 
-    @NotNull(message = "Role is required")
+    @NotNull(message = "El rol es obligatorio")
     private Role role;
 
-    @DecimalMin(value = "0.0", message = "Commission percentage must be at least 0")
-    @DecimalMax(value = "100.0", message = "Commission percentage must be at most 100")
+    @DecimalMin(value = "0.0", message = "El porcentaje de comisión no puede ser menor a 0")
+    @DecimalMax(value = "100.0", message = "El porcentaje de comisión no puede superar 100")
     private Double commissionPercentage;
 }

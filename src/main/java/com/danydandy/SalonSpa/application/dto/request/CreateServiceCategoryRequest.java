@@ -13,8 +13,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class CreateServiceCategoryRequest {
 
-    @NotBlank(message = "Name is required")
-    @Size(max = 100, message = "Name must be at most 100 characters")
+    @NotBlank(message = "El nombre es obligatorio")
+    @Size(max = 100, message = "El nombre admite como máximo 100 caracteres")
     private String name;
 
     private String description;

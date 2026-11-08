@@ -14,8 +14,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class SetTrialDaysRequest {
 
-    @NotNull(message = "Days is required")
-    @Min(value = 1, message = "Days must be at least 1")
-    @Max(value = 365, message = "Days must be at most 365")
+    @NotNull(message = "Los días son obligatorios")
+    @Min(value = 1, message = "Los días deben ser al menos 1")
+    @Max(value = 365, message = "Los días no pueden superar 365")
     private Integer days;
 }

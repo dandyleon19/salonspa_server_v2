@@ -27,7 +27,7 @@ public class ClinicalRecordServiceImpl implements ClinicalRecordUseCase {
         return SecurityHelper.currentUser()
                 .flatMap(authUser -> {
                     if (SecurityHelper.isStaffUser(authUser) && clinicalRecord.getNextAppointment() != null) {
-                        return Mono.<ClinicalRecord>error(new ForbiddenException("Staff users cannot schedule appointments"));
+                        return Mono.<ClinicalRecord>error(new ForbiddenException("Un trabajador no puede agendar citas"));
                     }
                     return clientRepositoryPort.findById(clinicalRecord.getClientId())
                             .switchIfEmpty(Mono.error(NotFoundException.forResource("Client", clinicalRecord.getClientId())))
@@ -70,7 +70,7 @@ public class ClinicalRecordServiceImpl implements ClinicalRecordUseCase {
         return SecurityHelper.currentUser()
                 .flatMap(authUser -> {
                     if (SecurityHelper.isStaffUser(authUser) && clinicalRecord.getNextAppointment() != null) {
-                        return Mono.<ClinicalRecord>error(new ForbiddenException("Staff users cannot schedule appointments"));
+                        return Mono.<ClinicalRecord>error(new ForbiddenException("Un trabajador no puede agendar citas"));
                     }
                     return loadWithTenantCheck(id, authUser)
                             .flatMap(existing -> {

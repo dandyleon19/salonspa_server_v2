@@ -6,7 +6,7 @@ import reactor.core.publisher.Mono;
 
 public interface ProductUseCase {
     Mono<Product> create(Product product);
-    Mono<PageResponse<Product>> findPage(int page, int size);
+    Mono<PageResponse<Product>> findPage(int page, int size, String search);
     Mono<Product> findById(Long id);
     Mono<Product> update(Long id, Product product);
     Mono<Product> updateImage(Long id, String imageUrl);

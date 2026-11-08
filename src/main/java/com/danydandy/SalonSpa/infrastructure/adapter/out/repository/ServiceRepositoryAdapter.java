@@ -21,14 +21,14 @@ public class ServiceRepositoryAdapter implements ServiceRepositoryPort {
     }
 
     @Override
-    public Flux<Service> findAll(int page, int size) {
-        return serviceRepository.findAllByOrderByCreatedAtAscIdAsc(PageRequest.of(page, size))
+    public Flux<Service> findAll(int page, int size, String search) {
+        return serviceRepository.findPage(search, size, (long) page * size)
                 .map(serviceMapper::toDomain);
     }
 
     @Override
-    public Mono<Long> countAll() {
-        return serviceRepository.count();
+    public Mono<Long> countAll(String search) {
+        return serviceRepository.countFiltered(search);
     }
 
     @Override
@@ -43,14 +43,14 @@ public class ServiceRepositoryAdapter implements ServiceRepositoryPort {
     }
 
     @Override
-    public Flux<Service> findBySalonId(Long salonId, int page, int size) {
-        return serviceRepository.findBySalonIdOrderByCreatedAtAscIdAsc(salonId, PageRequest.of(page, size))
+    public Flux<Service> findBySalonId(Long salonId, int page, int size, String search) {
+        return serviceRepository.findPageBySalonId(salonId, search, size, (long) page * size)
                 .map(serviceMapper::toDomain);
     }
 
     @Override
-    public Mono<Long> countBySalonId(Long salonId) {
-        return serviceRepository.countBySalonId(salonId);
+    public Mono<Long> countBySalonId(Long salonId, String search) {
+        return serviceRepository.countFilteredBySalonId(salonId, search);
     }
 
     @Override

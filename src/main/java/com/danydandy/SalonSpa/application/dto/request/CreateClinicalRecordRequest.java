@@ -16,18 +16,18 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class CreateClinicalRecordRequest {
 
-    @NotNull(message = "Client id is required")
-    @Positive(message = "Client id must be positive")
+    @NotNull(message = "El cliente es obligatorio")
+    @Positive(message = "El cliente no es válido")
     private Long clientId;
 
-    @NotNull(message = "User id is required")
-    @Positive(message = "User id must be positive")
+    @NotNull(message = "El profesional es obligatorio")
+    @Positive(message = "El profesional no es válido")
     private Long userId;
 
-    @Positive(message = "Branch id must be positive")
+    @Positive(message = "La sucursal no es válida")
     private Long branchId;
 
-    @Positive(message = "Service id must be positive")
+    @Positive(message = "El servicio no es válido")
     private Long serviceId;
 
     private String diagnosis;

@@ -3,13 +3,16 @@ package com.danydandy.SalonSpa.application.service;
 import com.danydandy.SalonSpa.application.dto.response.PageResponse;
 import com.danydandy.SalonSpa.application.security.SecurityHelper;
 import com.danydandy.SalonSpa.application.util.SearchHelper;
+import com.danydandy.SalonSpa.domain.exception.ForbiddenException;
 import com.danydandy.SalonSpa.domain.exception.NotFoundException;
 import com.danydandy.SalonSpa.domain.model.Role;
 import com.danydandy.SalonSpa.domain.model.User;
 import com.danydandy.SalonSpa.domain.ports.in.UserUseCase;
+import com.danydandy.SalonSpa.domain.ports.out.RefreshTokenRepositoryPort;
 import com.danydandy.SalonSpa.domain.ports.out.SalonRepositoryPort;
 import com.danydandy.SalonSpa.domain.ports.out.UserRepositoryPort;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
@@ -17,6 +20,8 @@ public class UserService implements UserUseCase {
 
     private final UserRepositoryPort userRepositoryPort;
     private final SalonRepositoryPort salonRepositoryPort;
+    private final RefreshTokenRepositoryPort refreshTokenRepositoryPort;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public Mono<PageResponse<User>> findPage(int page, int size, Boolean isActive, Role role, String search) {
@@ -59,6 +64,25 @@ public class UserService implements UserUseCase {
                             existing.setCommissionPercentage(user.getCommissionPercentage());
                             existing.setRole(user.getRole());
                             return userRepositoryPort.save(existing);
+                        }));
+    }
+
+    @Override
+    public Mono<Void> resetPassword(Long id, String newPassword) {
+        return SecurityHelper.currentUser()
+                .flatMap(authUser -> userRepositoryPort.findById(id)
+                        .switchIfEmpty(Mono.error(NotFoundException.forResource("User", id)))
+                        .flatMap(existing -> SecurityHelper.requireSameSalon(existing, existing.getSalonId(), authUser, "User", id))
+                        .flatMap(existing -> {
+                            // The platform owner's account is only changed by the platform owner.
+                            if (existing.getRole() == Role.SUPER_ADMIN && !SecurityHelper.isSuperAdmin(authUser)) {
+                                return Mono.<Void>error(new ForbiddenException(
+                                        "Solo un super administrador puede cambiar la contraseña de un super administrador"));
+                            }
+                            existing.setPassword(passwordEncoder.encode(newPassword));
+                            return userRepositoryPort.save(existing)
+                                    // The old password may be in someone else's hands: every open session ends.
+                                    .then(Mono.defer(() -> refreshTokenRepositoryPort.revokeAllByUserId(id)));
                         }));
     }
 

@@ -27,6 +27,11 @@ public class RefreshTokenRepositoryAdapter implements RefreshTokenRepositoryPort
     }
 
     @Override
+    public Mono<Void> revokeAllByUserId(Long userId) {
+        return refreshTokenRepository.revokeAllByUserId(userId).then();
+    }
+
+    @Override
     public Mono<Void> revokeById(Long id) {
         return refreshTokenRepository.findById(id)
                 .flatMap(entity -> {
