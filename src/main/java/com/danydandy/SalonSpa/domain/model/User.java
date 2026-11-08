@@ -20,6 +20,8 @@ public class User {
     private Role role;
     private Long salonId;
     private Salon salon;
+    /** When the user last signed in or renewed their session (null = never). */
+    private LocalDateTime lastLoginAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

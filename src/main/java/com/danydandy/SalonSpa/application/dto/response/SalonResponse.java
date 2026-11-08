@@ -13,6 +13,9 @@ public record SalonResponse(
         String logoUrl,
         List<BranchResponse> branches,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        /** Only for the platform admin: the salon's most recent session (null = never) and whose it was. */
+        LocalDateTime lastSessionAt,
+        String lastSessionBy
 ) {
 }

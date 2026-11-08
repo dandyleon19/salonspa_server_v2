@@ -1,12 +1,15 @@
 package com.danydandy.SalonSpa.infrastructure.adapter.out.repository;
 
 import com.danydandy.SalonSpa.domain.model.Salon;
+import com.danydandy.SalonSpa.domain.model.SalonLastSession;
 import com.danydandy.SalonSpa.domain.ports.out.SalonRepositoryPort;
 import com.danydandy.SalonSpa.infrastructure.adapter.out.mapper.SalonMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.Collection;
 
 @RequiredArgsConstructor
 public class SalonRepositoryAdapter implements SalonRepositoryPort {
@@ -40,5 +43,14 @@ public class SalonRepositoryAdapter implements SalonRepositoryPort {
     @Override
     public Mono<Void> deleteById(Long id) {
         return salonRepository.deleteById(id);
+    }
+
+    @Override
+    public Flux<SalonLastSession> findLastSessions(Collection<Long> salonIds) {
+        if (salonIds == null || salonIds.isEmpty()) {
+            return Flux.empty();
+        }
+        return salonRepository.findLastSessions(salonIds)
+                .map(row -> new SalonLastSession(row.salonId(), row.lastLoginAt(), row.userName()));
     }
 }

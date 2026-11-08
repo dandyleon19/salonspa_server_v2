@@ -19,6 +19,9 @@ public class Salon {
     private String phone;
     private String logoUrl;
     private List<Branch> branches;
+    /** Only filled for the platform admin: the most recent session of any user of the salon, and whose it was. */
+    private LocalDateTime lastSessionAt;
+    private String lastSessionBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

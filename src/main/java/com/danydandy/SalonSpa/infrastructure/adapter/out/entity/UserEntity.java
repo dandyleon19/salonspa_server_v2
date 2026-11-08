@@ -35,6 +35,9 @@ public class UserEntity {
     @Column("salon_id")
     private Long salonId;
 
+    @Column("last_login_at")
+    private LocalDateTime lastLoginAt;
+
     @Column("created_at")
     private LocalDateTime createdAt;
     @Column("updated_at")

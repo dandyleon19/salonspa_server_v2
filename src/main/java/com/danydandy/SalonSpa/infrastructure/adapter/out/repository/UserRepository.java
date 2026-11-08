@@ -1,6 +1,7 @@
 package com.danydandy.SalonSpa.infrastructure.adapter.out.repository;
 
 import com.danydandy.SalonSpa.infrastructure.adapter.out.entity.UserEntity;
+import org.springframework.data.r2dbc.repository.Modifying;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
 import reactor.core.publisher.Flux;
@@ -8,11 +9,16 @@ import reactor.core.publisher.Mono;
 
 public interface UserRepository extends R2dbcRepository<UserEntity, Long> {
 
+    /** Stamps the moment the user signed in or renewed their session, without rewriting the rest of the row. */
+    @Modifying
+    @Query("UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE id = :id")
+    Mono<Integer> markLogin(Long id);
+
     Mono<UserEntity> findByEmail(String email);
 
     @Query("""
             SELECT id, first_name, last_name, email, password, is_active, commission_percentage,
-                   role, salon_id, created_at, updated_at
+                   role, salon_id, last_login_at, created_at, updated_at
             FROM users
             WHERE (:isActive IS NULL OR is_active = :isActive)
               AND (:role IS NULL OR role = :role)
@@ -45,7 +51,7 @@ public interface UserRepository extends R2dbcRepository<UserEntity, Long> {
 
     @Query("""
             SELECT id, first_name, last_name, email, password, is_active, commission_percentage,
-                   role, salon_id, created_at, updated_at
+                   role, salon_id, last_login_at, created_at, updated_at
             FROM users
             WHERE salon_id = :salonId
               AND (:isActive IS NULL OR is_active = :isActive)

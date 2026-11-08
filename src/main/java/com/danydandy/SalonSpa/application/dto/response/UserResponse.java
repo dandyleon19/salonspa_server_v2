@@ -3,6 +3,8 @@ package com.danydandy.SalonSpa.application.dto.response;
 import com.danydandy.SalonSpa.domain.model.Role;
 import lombok.Builder;
 
+import java.time.LocalDateTime;
+
 @Builder
 public record UserResponse(
         Long id,
@@ -15,6 +17,8 @@ public record UserResponse(
         Role role,
         Long salonId,
         String salonName,
-        String salonLogoUrl
+        String salonLogoUrl,
+        /** When the user last signed in or renewed their session (null = never). */
+        LocalDateTime lastLoginAt
 ) {
 }

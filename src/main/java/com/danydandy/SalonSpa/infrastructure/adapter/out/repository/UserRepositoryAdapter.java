@@ -43,6 +43,11 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
+    public Mono<Void> markLogin(Long id) {
+        return userRepository.markLogin(id).then();
+    }
+
+    @Override
     public Mono<User> findByEmail(String email) {
         return userRepository.findByEmail(email)
                 .map(userMapper::toDomain);

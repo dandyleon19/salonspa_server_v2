@@ -92,7 +92,8 @@ public class AuthServiceImpl implements AuthUseCase {
                         return Mono.error(new UnauthorizedException("Correo o contraseña incorrectos"));
                     }
 
-                    return issueAuthResponse(user);
+                    return userRepositoryPort.markLogin(user.getId())
+                            .then(Mono.defer(() -> issueAuthResponse(user)));
                 });
     }
 
@@ -121,7 +122,9 @@ public class AuthServiceImpl implements AuthUseCase {
                         .filter(user -> Boolean.TRUE.equals(user.getIsActive()))
                         .switchIfEmpty(Mono.error(invalidRefreshToken()))
                         .flatMap(user -> refreshTokenRepositoryPort.revokeById(stored.getId())
-                                .then(issueAuthResponse(user))));
+                                // Renewing means the person is still working: it counts as a session.
+                                .then(userRepositoryPort.markLogin(user.getId()))
+                                .then(Mono.defer(() -> issueAuthResponse(user)))));
     }
 
     @Override

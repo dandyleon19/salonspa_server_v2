@@ -275,6 +275,7 @@ class AuthServiceImplTest {
         when(refreshTokenRepositoryPort.findValidByTokenHash(anyString())).thenReturn(Mono.just(storedToken));
         when(userRepositoryPort.findById(10L)).thenReturn(Mono.just(user));
         when(refreshTokenRepositoryPort.revokeById(99L)).thenReturn(Mono.empty());
+        when(userRepositoryPort.markLogin(10L)).thenReturn(Mono.empty());
         when(jwtProperties.refreshExpirationMs()).thenReturn(604800000L);
         when(jwtService.generateToken(10L, 5L, Role.ADMIN_USER)).thenReturn("new-access-token");
         when(refreshTokenRepositoryPort.save(any(RefreshToken.class))).thenAnswer(invocation -> {
@@ -293,6 +294,7 @@ class AuthServiceImplTest {
                 .verifyComplete();
 
         verify(refreshTokenRepositoryPort).revokeById(99L);
+        verify(userRepositoryPort).markLogin(10L);
     }
 
     @Test

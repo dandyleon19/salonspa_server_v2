@@ -11,6 +11,8 @@ public interface UserRepositoryPort {
     Mono<User> findById(Long id);
     Mono<Void> deleteById(Long id);
     Mono<User> findByEmail(String email);
+    /** Records that the user just signed in or renewed their session. */
+    Mono<Void> markLogin(Long id);
     Flux<User> findBySalonId(Long salonId, int page, int size, Boolean isActive, String role, String search);
     Mono<Long> countBySalonId(Long salonId, Boolean isActive, String role, String search);
 }

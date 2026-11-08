@@ -5,6 +5,7 @@ import com.danydandy.SalonSpa.application.security.SecurityHelper;
 import com.danydandy.SalonSpa.application.util.SearchHelper;
 import com.danydandy.SalonSpa.domain.exception.NotFoundException;
 import com.danydandy.SalonSpa.domain.model.Salon;
+import com.danydandy.SalonSpa.domain.model.SalonLastSession;
 import com.danydandy.SalonSpa.domain.ports.in.SalonUseCase;
 import com.danydandy.SalonSpa.domain.ports.in.SubscriptionUseCase;
 import com.danydandy.SalonSpa.domain.ports.out.BranchRepositoryPort;
@@ -108,6 +109,27 @@ public class SalonServiceImpl implements SalonUseCase {
                 salonRepositoryPort.findAll(page, size, search)
                         .flatMap(this::enrichWithBranches)
                         .collectList()
+                        .flatMap(this::withLastSessions)
         ).map(tuple -> PageResponse.of(tuple.getT2(), page, size, tuple.getT1()));
+    }
+
+    /** One lookup for the whole page: when each salon last had a session, and whose it was. */
+    private Mono<List<Salon>> withLastSessions(List<Salon> salons) {
+        if (salons.isEmpty()) {
+            return Mono.just(salons);
+        }
+        List<Long> ids = salons.stream().map(Salon::getId).toList();
+        return salonRepositoryPort.findLastSessions(ids)
+                .collectMap(SalonLastSession::salonId)
+                .map(bySalon -> {
+                    salons.forEach(salon -> {
+                        SalonLastSession last = bySalon.get(salon.getId());
+                        if (last != null) {
+                            salon.setLastSessionAt(last.at());
+                            salon.setLastSessionBy(last.userName());
+                        }
+                    });
+                    return salons;
+                });
     }
 }
